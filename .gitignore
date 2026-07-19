@@ -46,4 +46,4 @@ Bellevue_AIS_Demo_TalkTrack_Portal_and_Python.html
 .run/
 
 # ── draw.io sources (editable; committed renders live in docs/images/) ──
-docs/diagrams/*.drawio
+docs/diagrams/

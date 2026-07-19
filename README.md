@@ -49,8 +49,8 @@ Portal → API Management → Logic App → Service Bus → Function/AI agent �
 
 ![AIS demo architecture — governed, event-driven permit intake across API Management, Logic Apps, Service Bus, Functions, Document Intelligence, Azure OpenAI, Event Grid, and Application Insights](docs/images/architecture-overview.svg)
 
-See [docs/architecture.md](docs/architecture.md) for diagrams (editable draw.io
-sources in [docs/diagrams/](docs/diagrams/)).
+See [docs/architecture.md](docs/architecture.md) for diagrams. (The editable
+draw.io sources are kept locally and not committed.)
 
 ## Tech stack
 

@@ -8,7 +8,7 @@ generic — swap the schemas and `USE_CASE_PROFILE` to fit any intake scenario.
 
 ![End-to-end permit-intake flow: Portal → API Management → Logic App → Service Bus → Function → Document Intelligence / Azure OpenAI / CRM → Event Grid, with Application Insights tracing](images/architecture-overview.svg)
 
-<sub>Editable source: [diagrams/architecture-overview.drawio](diagrams/architecture-overview.drawio) — see [diagrams/README.md](diagrams/README.md) to edit/export.</sub>
+<sub>Rendered from a draw.io source kept locally (the editable `.drawio` files are not committed).</sub>
 
 ## Two governed API surfaces
 
@@ -16,7 +16,7 @@ API Management governs **both** the public API and the model API:
 
 ![Two governed surfaces: the Permits API (/permits) and the Azure OpenAI API (/openai) with token-limit, token-metric, and managed-identity policies; the Function's compliance call routes back through the gateway](images/apim-ai-gateway.svg)
 
-<sub>Editable source: [diagrams/apim-ai-gateway.drawio](diagrams/apim-ai-gateway.drawio).</sub>
+<sub>Rendered from a draw.io source kept locally (not committed).</sub>
 
 The Function's compliance-scoring call (step B4) routes **back through** the
 APIM Azure OpenAI surface, so `azure-openai-token-limit` and
@@ -51,7 +51,7 @@ with the [Azure APIM landing zone reference](https://learn.microsoft.com/azure/a
 
 ![APIM landing zone: numbered bands for channels, edge/identity, APIM hub VNet, application spoke VNet, data/integration with private endpoints, and observability/governance](images/apim-landing-zone.svg)
 
-<sub>Editable source: [diagrams/apim-landing-zone.drawio](diagrams/apim-landing-zone.drawio). Apply the [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/) before production.</sub>
+<sub>Rendered from a draw.io source kept locally (not committed). Apply the [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/) before production.</sub>
 
 For the full production checklist — security, reliability, observability,
 evaluation, and CI/CD, mapped to WAF pillars and Microsoft reference
