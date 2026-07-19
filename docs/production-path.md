@@ -36,6 +36,36 @@ pillars and aligned to Microsoft reference architectures.
 | **Service Bus / Event Grid** | Standard, public | Premium (Service Bus) for VNet + higher throughput; private endpoints; geo-DR |
 | **State** | In-memory / simulated CRM | Real system of record with idempotency + outbox |
 
+## AI gateway front door (load-balanced, multi-region)
+
+The demo fronts a **single-region** Azure OpenAI deployment. At production scale
+the same APIM AI gateway becomes a resilient front door: a **load-balanced
+backend pool** across regions, a **circuit breaker** that trips on repeated
+`429`/`5xx` and routes to a healthy region, and a **semantic cache** that serves
+similar prompts from Azure Managed Redis to cut tokens and latency — all on top
+of the token-limit + token-metric + managed-identity policies already in the
+demo.
+
+![Load-balanced AI gateway front door](images/apim-front-door.svg)
+
+The governance policies stay identical; you add a backend pool and cache. Sketch:
+
+```xml
+<!-- inbound: serve from semantic cache when a similar prompt was seen -->
+<azure-openai-semantic-cache-lookup score-threshold="0.05"
+    embeddings-backend-id="embeddings-backend"
+    embeddings-backend-auth="system-assigned" />
+<!-- route to a load-balanced, circuit-broken pool instead of a single backend -->
+<set-backend-service backend-id="aoai-pool" />
+<!-- outbound: store the response for future cache hits -->
+<azure-openai-semantic-cache-store duration="120" />
+```
+
+The `aoai-pool` backend is an APIM **backend pool** with priority/weight per
+region and a `circuitBreaker` rule; see
+[Azure OpenAI semantic caching](https://learn.microsoft.com/azure/api-management/azure-openai-enable-semantic-caching)
+and [backend load balancing & circuit breaker](https://learn.microsoft.com/azure/api-management/backends).
+
 ## Security
 
 - **Network isolation** — Private Endpoints for APIM backend, Service Bus, Event
@@ -83,6 +113,10 @@ For production, add:
   Insights; end-to-end sampling policy.
 - **Cost telemetry** — per-user/per-team FinOps via the AI gateway (see
   [ai_gateway_extras/per_user_cost_attribution.py](../ai_gateway_extras/per_user_cost_attribution.py)).
+  Reusable dashboard queries:
+  [token-monitoring.kql](../ai_gateway_extras/kql/token-monitoring.kql) (tokens
+  by department) and
+  [chargeback.kql](../ai_gateway_extras/kql/chargeback.kql) (per-department USD).
 
 ## Evaluation (AI quality)
 

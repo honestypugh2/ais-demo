@@ -1,0 +1,36 @@
+// ============================================================================
+// Token monitoring — tokens consumed through the APIM AI gateway.
+//
+// Source: the `azure-openai-emit-token-metric` policy on the Azure OpenAI API
+// (namespace "ais-demo-ai-gateway", dimensions Subscription + Department).
+// See apim/policies/aoai-api.policy.xml.
+//
+// Run in: Application Insights › Logs (classic `customMetrics` schema).
+// For a workspace-based Application Insights resource, use the `AppMetrics`
+// variant at the bottom of this file.
+// ============================================================================
+
+// --- Tokens per hour, split by metric and department ------------------------
+customMetrics
+| where name in ("Total Tokens", "Prompt Tokens", "Completion Tokens")
+| extend Subscription = tostring(customDimensions["Subscription"]),
+         Department   = tostring(customDimensions["Department"])
+| summarize Tokens = sum(valueSum) by bin(timestamp, 1h), name, Department
+| render timechart
+
+// --- Top consumers over the last 24h ----------------------------------------
+// customMetrics
+// | where timestamp > ago(24h)
+// | where name == "Total Tokens"
+// | extend Subscription = tostring(customDimensions["Subscription"]),
+//          Department   = tostring(customDimensions["Department"])
+// | summarize TotalTokens = sum(valueSum) by Subscription, Department
+// | top 10 by TotalTokens desc
+
+// --- Workspace-based Application Insights (AppMetrics) equivalent ------------
+// AppMetrics
+// | where Name in ("Total Tokens", "Prompt Tokens", "Completion Tokens")
+// | extend Subscription = tostring(Properties["Subscription"]),
+//          Department   = tostring(Properties["Department"])
+// | summarize Tokens = sum(Sum) by bin(TimeGenerated, 1h), Name, Department
+// | render timechart

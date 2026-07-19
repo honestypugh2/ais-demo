@@ -1,0 +1,27 @@
+// ============================================================================
+// Chargeback / showback — turn AI-gateway token metrics into a per-department
+// bill. Pairs with per_user_cost_attribution.py (request-time attribution);
+// this query is the aggregate, dashboard-friendly view.
+//
+// Source: `azure-openai-emit-token-metric` (namespace "ais-demo-ai-gateway").
+// Run in: Application Insights › Logs (classic `customMetrics` schema).
+//
+// NOTE: rates below are illustrative. Replace with the price list for the model
+// deployment you front (see https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/).
+// ============================================================================
+
+let PromptRatePer1K     = 0.00015;   // USD per 1K prompt tokens (example)
+let CompletionRatePer1K = 0.00060;   // USD per 1K completion tokens (example)
+let LookbackDays        = 30d;
+customMetrics
+| where timestamp > ago(LookbackDays)
+| where name in ("Prompt Tokens", "Completion Tokens")
+| extend Department = tostring(customDimensions["Department"])
+| summarize Tokens = sum(valueSum) by Department, name
+| evaluate pivot(name, sum(Tokens))
+| extend PromptTokens     = coalesce(todouble(['Prompt Tokens']), 0.0),
+         CompletionTokens = coalesce(todouble(['Completion Tokens']), 0.0)
+| extend CostUSD = round(PromptTokens / 1000 * PromptRatePer1K
+                       + CompletionTokens / 1000 * CompletionRatePer1K, 4)
+| project Department, PromptTokens, CompletionTokens, CostUSD
+| order by CostUSD desc

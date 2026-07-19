@@ -25,6 +25,18 @@ variables as the main demo (see `.env.example`):
 | `mcp_tools_gateway.py` | Calls an MCP tool surface governed by the same APIM gateway (rate-limit + auth). |
 | `apim/per-user-cost-attribution.policy.xml` | Illustrative gateway policy: resolve identity (Entra `oid` › `x-user-id` › subscription), per-user token limit, emit per-user token metric. |
 
+## KQL — token monitoring & chargeback
+
+The FinOps scripts attribute cost at request time; these queries are the
+aggregate, dashboard-friendly view. Both read the metric emitted by
+`azure-openai-emit-token-metric` (namespace `ais-demo-ai-gateway`, dimensions
+`Subscription` + `Department`). Run them in **Application Insights › Logs**.
+
+| File | What it shows |
+| --- | --- |
+| `kql/token-monitoring.kql` | Tokens/hour by metric and department; top consumers (24h). |
+| `kql/chargeback.kql` | Per-department token → USD cost (30-day showback/chargeback). |
+
 ## Run
 
 ```bash

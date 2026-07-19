@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="b" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0F6CBD"/></marker>
+    <marker id="g" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#107C10"/></marker>
+    <marker id="r" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#A4262C"/></marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="520" fill="#FFFFFF"/>
+  <text x="30" y="34" font-size="16" font-weight="700" fill="#0F548C">Load-balanced AI gateway front door (production / scale-out)</text>
+  <text x="30" y="52" font-size="11" fill="#605E5C">Single-region demo → multi-region resilience: backend pool, circuit breaker, semantic cache</text>
+
+  <!-- consumer -->
+  <rect x="30" y="150" width="140" height="60" rx="6" fill="#F3F2F1" stroke="#605E5C"/>
+  <text x="100" y="178" font-size="12" font-weight="700" fill="#201F1E" text-anchor="middle">Consumer /</text>
+  <text x="100" y="195" font-size="12" font-weight="700" fill="#201F1E" text-anchor="middle">orchestrator</text>
+
+  <!-- APIM container -->
+  <rect x="220" y="80" width="360" height="380" rx="8" fill="#E5F0FB" stroke="#0F6CBD"/>
+  <text x="235" y="100" font-size="12" font-weight="700" fill="#0F548C">Azure API Management · AI gateway</text>
+
+  <!-- policy stack -->
+  <rect x="250" y="120" width="300" height="180" rx="6" fill="#0F6CBD" stroke="#0B4E8A"/>
+  <text x="400" y="140" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Azure OpenAI API  /openai</text>
+  <g font-size="10.5">
+    <rect x="264" y="152" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="169" fill="#0B4E8A" text-anchor="middle">azure-openai-semantic-cache-lookup</text>
+    <rect x="264" y="184" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="201" fill="#0B4E8A" text-anchor="middle">azure-openai-token-limit (per-consumer TPM)</text>
+    <rect x="264" y="216" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="233" fill="#0B4E8A" text-anchor="middle">azure-openai-emit-token-metric (Sub·Dept)</text>
+    <rect x="264" y="248" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="265" fill="#0B4E8A" text-anchor="middle">retry + authentication-managed-identity</text>
+    <rect x="264" y="280" width="272" height="14" rx="3" fill="#EAF7EA" stroke="#107C10"/><text x="400" y="291" fill="#0B5A0B" text-anchor="middle" font-size="9.5">store on miss ▸ azure-openai-semantic-cache-store</text>
+  </g>
+
+  <!-- backend pool -->
+  <rect x="250" y="320" width="300" height="120" rx="6" fill="#F4EEFB" stroke="#8661C5"/>
+  <text x="400" y="340" font-size="12" font-weight="700" fill="#3B2A6B" text-anchor="middle">Backend pool  (load-balanced)</text>
+  <text x="400" y="356" font-size="10" fill="#3B2A6B" text-anchor="middle">round-robin / priority-weighted · circuit breaker on 429/5xx</text>
+  <text x="400" y="372" font-size="10" fill="#3B2A6B" text-anchor="middle">trip on repeated failures → route to healthy region</text>
+
+  <!-- semantic cache store -->
+  <rect x="30" y="300" width="140" height="60" rx="6" fill="#FDF3D6" stroke="#C19C00"/>
+  <text x="100" y="325" font-size="11" font-weight="700" fill="#7A5C00" text-anchor="middle">Semantic cache</text>
+  <text x="100" y="342" font-size="10" fill="#7A5C00" text-anchor="middle">(Azure Managed Redis)</text>
+
+  <!-- backends -->
+  <rect x="640" y="110" width="280" height="60" rx="6" fill="#EAF7EA" stroke="#107C10"/>
+  <text x="780" y="135" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">AOAI · East US 2  (priority 1)</text>
+  <text x="780" y="152" font-size="10" fill="#0B5A0B" text-anchor="middle">gpt-4o-mini · GlobalStandard</text>
+
+  <rect x="640" y="190" width="280" height="60" rx="6" fill="#EAF7EA" stroke="#107C10"/>
+  <text x="780" y="215" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">AOAI · West US  (priority 2)</text>
+  <text x="780" y="232" font-size="10" fill="#0B5A0B" text-anchor="middle">failover capacity</text>
+
+  <rect x="640" y="270" width="280" height="60" rx="6" fill="#EAF7EA" stroke="#107C10"/>
+  <text x="780" y="295" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">AOAI · Sweden Central  (priority 2)</text>
+  <text x="780" y="312" font-size="10" fill="#0B5A0B" text-anchor="middle">spillover / data residency</text>
+
+  <!-- app insights -->
+  <rect x="640" y="380" width="280" height="60" rx="6" fill="#F3F2F1" stroke="#5E5E5E"/>
+  <text x="780" y="405" font-size="11" font-weight="700" fill="#323130" text-anchor="middle">Application Insights</text>
+  <text x="780" y="422" font-size="10" fill="#323130" text-anchor="middle">token metrics → chargeback KQL</text>
+
+  <!-- edges -->
+  <g fill="none" stroke-width="2">
+    <line x1="170" y1="180" x2="248" y2="180" stroke="#0F6CBD" marker-end="url(#b)"/>
+    <line x1="400" y1="300" x2="400" y2="318" stroke="#8661C5" marker-end="url(#b)"/>
+    <path d="M264,168 C210,168 150,220 150,298" stroke="#C19C00" stroke-dasharray="5 4" marker-end="url(#b)"/>
+    <line x1="550" y1="360" x2="640" y2="140" stroke="#107C10" marker-end="url(#g)"/>
+    <line x1="550" y1="375" x2="640" y2="220" stroke="#A4262C" stroke-dasharray="6 4" marker-end="url(#r)"/>
+    <line x1="550" y1="390" x2="640" y2="300" stroke="#A4262C" stroke-dasharray="6 4" marker-end="url(#r)"/>
+    <path d="M552,235 C590,300 610,380 638,405" stroke="#8A8886" stroke-dasharray="3 3"/>
+  </g>
+  <text x="560" y="248" font-size="10" fill="#0F548C">primary route</text>
+  <text x="560" y="330" font-size="10" fill="#A4262C">failover on breaker trip</text>
+</svg>

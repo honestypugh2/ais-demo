@@ -10,6 +10,7 @@ from the repo root.
 | [`run_local.sh`](run_local.sh) | Run the backend + frontend together in the **foreground** (Ctrl-C stops both). |
 | [`run_demo.sh`](run_demo.sh) | **Live rehearsal against Azure.** Drives both governed front doors — Part A (APIM → Logic App) and Part B (APIM direct) — plus an AI-gateway call, and prints the correlated App Insights trace. Usage: `run_demo.sh [a|b|all]`. |
 | [`seed_permits.py`](seed_permits.py) | Seed the Service Bus queue with sample permits (live or simulated). Run with `uv run python scripts/seed_permits.py [count]`. |
+| [`get_token.sh`](get_token.sh) | Mint an Entra ID access token (OAuth2 client-credentials) for the JWT-protected Permits API — used in Demo Track step A14 to show `202` with a valid token and `401` without. Reads `TENANT_ID`, `CLIENT_ID`, `CLIENT_SECRET`, `API_SCOPE`. |
 
 ## Common flows
 

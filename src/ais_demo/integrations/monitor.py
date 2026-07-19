@@ -16,7 +16,7 @@ from ais_demo.core.logging import get_logger
 logger = get_logger(__name__)
 
 KQL_TEMPLATE = """
-union requests, dependencies, traces
+union requests, dependencies, traces, exceptions
 | where operation_Id == '{cid}'
      or customDimensions['correlationId'] == '{cid}'
 | project timestamp, itemType, name, resultCode, duration, cloud_RoleName

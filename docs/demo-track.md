@@ -45,6 +45,14 @@ Portal → API Management → Logic App → Service Bus → Function/AI agent �
 | A14 | APIM → invalid token | `401` at the door (and `429` when rate limit trips) |
 | A15 | Service Bus → dead-letter | Poison message dead-lettered after retries — nothing lost |
 
+> **A14 helper:** mint a real Entra token with
+> [scripts/get_token.sh](../scripts/get_token.sh) (OAuth2 client-credentials),
+> call the Permits API to get `202`, then tamper/drop the token to show the
+> `401`. **A5 follow-up:** the token metrics land in Application Insights —
+> render them with
+> [ai_gateway_extras/kql/token-monitoring.kql](../ai_gateway_extras/kql/token-monitoring.kql)
+> and [chargeback.kql](../ai_gateway_extras/kql/chargeback.kql).
+
 ## Part B — Azure SDK for Python walkthrough
 
 Run the whole thing offline: `uv run ais-demo`. Each step maps to a Demo Track
