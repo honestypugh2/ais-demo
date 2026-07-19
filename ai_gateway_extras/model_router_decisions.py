@@ -6,7 +6,7 @@ In production the routing can live in an APIM policy (backend selection) so the
 choice is governed and observable; here it is shown client-side for clarity.
 
 Run:
-    uv run python ai_demo/model_router_decisions.py
+    uv run python ai_gateway_extras/model_router_decisions.py
 """
 
 from __future__ import annotations

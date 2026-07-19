@@ -5,7 +5,7 @@ Sends a chat completion to the model *fronted by APIM*, so the gateway's
 to the call. Prints the token usage the gateway metered.
 
 Run:
-    uv run python ai_demo/ai_gateway_call.py
+    uv run python ai_gateway_extras/ai_gateway_call.py
 """
 
 from __future__ import annotations

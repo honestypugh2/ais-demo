@@ -102,7 +102,7 @@ Rehearse both governed front doors against live Azure (after deploy):
 ```
 src/ais_demo/     Shared package: orchestrator + integrations + FastAPI + Part B driver (see its README)
 functionapp/      Azure Functions host (Service Bus trigger) — reuses src/ais_demo
-ai_demo/          AI-gateway feature demos: per-user cost attribution, model routing, gateway calls
+ai_gateway_extras/  AI-gateway feature demos: per-user cost attribution, model routing, gateway calls
 apim/policies/    APIM AI-gateway + front-door policies (direct enqueue + Logic App routing)
 infra/            Bicep IaC (Service Bus, Event Grid, Document Intelligence, AOAI, Functions, APIM, Logic App)
 integration/      Low-code artifacts: Logic App workflow + Event Grid subscriptions

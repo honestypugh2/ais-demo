@@ -1,4 +1,4 @@
-# AI Gateway feature demos (`ai_demo/`)
+# AI Gateway feature demos (`ai_gateway_extras/`)
 
 Optional, self-contained add-ons that extend the Demo Track's AI-gateway story
 (steps **A5 / B4** — token limits + token metrics) with FinOps and routing
@@ -28,9 +28,9 @@ variables as the main demo (see `.env.example`):
 ## Run
 
 ```bash
-uv run python ai_demo/ai_gateway_call.py
-uv run python ai_demo/per_user_cost_attribution.py
-uv run python ai_demo/model_router_decisions.py
+uv run python ai_gateway_extras/ai_gateway_call.py
+uv run python ai_gateway_extras/per_user_cost_attribution.py
+uv run python ai_gateway_extras/model_router_decisions.py
 ```
 
 > **Security:** never trust `x-user-id` straight from a browser — it is only safe

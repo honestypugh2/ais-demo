@@ -10,7 +10,7 @@ subscription id. Never trust ``x-user-id`` from a browser; only a trusted
 server-side proxy should stamp it.
 
 Run:
-    uv run python ai_demo/per_user_cost_attribution.py
+    uv run python ai_gateway_extras/per_user_cost_attribution.py
 """
 
 from __future__ import annotations

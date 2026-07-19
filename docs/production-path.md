@@ -82,7 +82,7 @@ For production, add:
 - **Tracing** — OpenTelemetry from the Function/orchestrator into Application
   Insights; end-to-end sampling policy.
 - **Cost telemetry** — per-user/per-team FinOps via the AI gateway (see
-  [ai_demo/per_user_cost_attribution.py](../ai_demo/per_user_cost_attribution.py)).
+  [ai_gateway_extras/per_user_cost_attribution.py](../ai_gateway_extras/per_user_cost_attribution.py)).
 
 ## Evaluation (AI quality)
 
