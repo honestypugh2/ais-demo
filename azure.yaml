@@ -1,0 +1,30 @@
+# Azure Developer CLI (azd) project definition.
+# https://learn.microsoft.com/azure/developer/azure-developer-cli/azure-yaml-schema
+name: ais-demo
+metadata:
+  template: ais-demo@0.1.0
+
+# Infrastructure as Code (Bicep) lives under ./infra.
+infra:
+  provider: bicep
+  path: infra
+  module: main
+
+services:
+  # Python orchestrator (FastAPI). Container Apps host by default; can also be
+  # deployed to App Service. The Service Bus-triggered processor lives in the
+  # Functions host under ./functionapp (deployed separately, see docs).
+  api:
+    project: ./src
+    language: python
+    host: containerapp
+    docker:
+      path: ../Dockerfile
+      context: ../
+
+  # React + TypeScript portal (static web frontend).
+  web:
+    project: ./frontend
+    language: js
+    host: staticwebapp
+    dist: dist

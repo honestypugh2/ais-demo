@@ -1,0 +1,5 @@
+# Azure Functions host dependencies.
+# The shared application package (ais-demo) is installed from the repo root:
+#   pip install -e ..
+azure-functions~=1.21
+-e ..

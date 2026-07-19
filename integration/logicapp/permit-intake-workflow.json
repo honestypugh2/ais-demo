@@ -1,0 +1,108 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "comment": "Permit intake orchestration (Demo Track step A7): validate -> enrich -> set correlation ID -> send to Service Bus queue 'permits-in'. Triggered by API Management.",
+    "parameters": {
+      "serviceBusConnectionRuntimeUrl": {
+        "type": "String",
+        "metadata": { "description": "Service Bus API connection runtime URL." }
+      }
+    },
+    "triggers": {
+      "When_a_permit_is_submitted": {
+        "type": "Request",
+        "kind": "Http",
+        "inputs": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "type": "string" },
+              "parcel": { "type": "string" },
+              "documentUrl": { "type": "string" }
+            },
+            "required": ["name", "type"]
+          }
+        }
+      }
+    },
+    "actions": {
+      "Validate_payload": {
+        "type": "If",
+        "expression": {
+          "and": [
+            { "not": { "equals": ["@triggerBody()?['type']", null] } },
+            { "not": { "equals": ["@triggerBody()?['name']", null] } }
+          ]
+        },
+        "actions": {
+          "Set_correlation_id": {
+            "type": "Compose",
+            "inputs": "@coalesce(triggerOutputs()?['headers']?['X-Correlation-Id'], guid())"
+          },
+          "Enrich_message": {
+            "type": "Compose",
+            "runAfter": { "Set_correlation_id": ["Succeeded"] },
+            "inputs": {
+              "name": "@triggerBody()?['name']",
+              "type": "@triggerBody()?['type']",
+              "parcel": "@triggerBody()?['parcel']",
+              "documentUrl": "@triggerBody()?['documentUrl']",
+              "correlationId": "@outputs('Set_correlation_id')",
+              "receivedAt": "@utcNow()"
+            }
+          },
+          "Send_to_Service_Bus": {
+            "type": "ServiceProvider",
+            "runAfter": { "Enrich_message": ["Succeeded"] },
+            "inputs": {
+              "parameters": {
+                "entityName": "permits-in",
+                "message": {
+                  "contentData": "@outputs('Enrich_message')",
+                  "contentType": "application/json",
+                  "messageId": "@coalesce(triggerBody()?['parcel'], outputs('Set_correlation_id'))",
+                  "userProperties": {
+                    "correlationId": "@outputs('Set_correlation_id')"
+                  }
+                }
+              },
+              "serviceProviderConfiguration": {
+                "connectionName": "serviceBus",
+                "operationId": "sendMessage",
+                "serviceProviderId": "/serviceProviders/serviceBus"
+              }
+            }
+          },
+          "Respond_202": {
+            "type": "Response",
+            "kind": "Http",
+            "runAfter": { "Send_to_Service_Bus": ["Succeeded"] },
+            "inputs": {
+              "statusCode": 202,
+              "headers": { "X-Correlation-Id": "@outputs('Set_correlation_id')" },
+              "body": {
+                "status": "accepted",
+                "correlationId": "@outputs('Set_correlation_id')"
+              }
+            }
+          }
+        },
+        "else": {
+          "actions": {
+            "Respond_400": {
+              "type": "Response",
+              "kind": "Http",
+              "inputs": {
+                "statusCode": 400,
+                "body": { "error": "Missing required fields: name, type" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "outputs": {}
+  }
+}

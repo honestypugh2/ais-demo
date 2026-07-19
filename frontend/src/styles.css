@@ -1,0 +1,223 @@
+:root {
+  --plum: #463668;
+  --deep: #2e2247;
+  --mag: #c03bc4;
+  --purple: #8661c5;
+  --bg: #f7f5fb;
+  --card: #ffffff;
+  --border: #e4dcf1;
+  --ink: #242424;
+  --muted: #5b5766;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+}
+
+.page {
+  max-width: 1040px;
+  margin-inline: auto;
+  padding: 0 24px 40px;
+}
+
+.hero {
+  background: linear-gradient(135deg, var(--deep), var(--plum) 60%, var(--purple));
+  color: #fff;
+  border-radius: 0 0 16px 16px;
+  padding: 32px 28px;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #d59ed7;
+  margin: 0 0 8px;
+}
+
+.hero h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+
+.hero .sub {
+  margin: 0;
+  color: #d9cdec;
+}
+
+.status {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.pill.simulated {
+  background: #8a6d00;
+}
+
+.pill.live {
+  background: #107c10;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.card.wide {
+  grid-column: 1 / -1;
+}
+
+.card h2 {
+  color: var(--plum);
+  font-size: 18px;
+  margin: 0 0 14px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: var(--muted);
+  gap: 4px;
+}
+
+input {
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+button {
+  background: var(--mag);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cid code,
+.result code {
+  background: #f2eef9;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.error {
+  color: #b00020;
+  font-size: 13px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.result {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.badge {
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.IntakeReview {
+  background: #e6f4ea;
+  color: #107c10;
+}
+
+.badge.NeedsAttention {
+  background: #fdecea;
+  color: #b00020;
+}
+
+.flags {
+  margin: 6px 0;
+  padding-inline-start: 18px;
+  color: #8a6d00;
+  font-size: 13px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th {
+  background: var(--plum);
+  color: #fff;
+  text-align: left;
+  padding: 8px 10px;
+}
+
+td {
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+}
+
+footer {
+  margin-top: 28px;
+  color: var(--muted);
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

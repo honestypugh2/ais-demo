@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 545" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#555"/></marker>
+    <marker id="arrB" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0F6CBD"/></marker>
+    <marker id="arrP" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8661C5"/></marker>
+    <marker id="arrO" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#D83B01"/></marker>
+    <marker id="arrG" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#107C10"/></marker>
+  </defs>
+  <rect x="0" y="0" width="1300" height="545" fill="#FFFFFF"/>
+  <text x="40" y="34" font-size="18" font-weight="700" fill="#0F548C">AIS Demo — Governed, Event-Driven Permit Intake</text>
+  <rect x="960" y="16" width="300" height="42" rx="6" fill="#EDEBF9" stroke="#5C2D91"/>
+  <text x="1110" y="33" font-size="11" fill="#3B2A6B" text-anchor="middle">Microsoft Entra ID · Managed Identity</text>
+  <text x="1110" y="48" font-size="11" fill="#3B2A6B" text-anchor="middle">(no keys on the wire)</text>
+
+  <!-- Zones -->
+  <g fill="none" stroke-dasharray="4 3">
+    <rect x="40"  y="80" width="180" height="330" rx="8" stroke="#8A8886"/>
+    <rect x="240" y="80" width="200" height="330" rx="8" stroke="#0F6CBD" fill="#E5F0FB" fill-opacity="0.5"/>
+    <rect x="470" y="80" width="190" height="330" rx="8" stroke="#8661C5" fill="#F4EEFB" fill-opacity="0.5"/>
+    <rect x="700" y="80" width="200" height="330" rx="8" stroke="#107C10" fill="#EAF7EA" fill-opacity="0.5"/>
+    <rect x="940" y="80" width="200" height="330" rx="8" stroke="#D83B01" fill="#FEF0E7" fill-opacity="0.5"/>
+  </g>
+  <g font-size="11" font-weight="700">
+    <text x="50"  y="98" fill="#605E5C">Experience</text>
+    <text x="250" y="98" fill="#0F548C">Azure API Management · gateway</text>
+    <text x="480" y="98" fill="#5C2D91">Integration</text>
+    <text x="710" y="98" fill="#0B5A0B">Compute + AI</text>
+    <text x="950" y="98" fill="#A5310A">Eventing</text>
+  </g>
+
+  <!-- Nodes -->
+  <g font-size="12">
+    <!-- portal -->
+    <rect x="60" y="130" width="140" height="70" rx="6" fill="#F3F2F1" stroke="#605E5C"/>
+    <text x="130" y="160" fill="#201F1E" font-weight="700" text-anchor="middle">Permit Intake</text>
+    <text x="130" y="176" fill="#201F1E" font-weight="700" text-anchor="middle">Portal (React/TS)</text>
+    <!-- permits api -->
+    <rect x="260" y="130" width="160" height="60" rx="6" fill="#0F6CBD" stroke="#0B4E8A"/>
+    <text x="340" y="155" fill="#fff" font-weight="700" text-anchor="middle">Permits API</text>
+    <text x="340" y="172" fill="#fff" text-anchor="middle">/permits</text>
+    <!-- aoai api -->
+    <rect x="260" y="210" width="160" height="60" rx="6" fill="#0F6CBD" stroke="#0B4E8A"/>
+    <text x="340" y="234" fill="#fff" font-weight="700" text-anchor="middle">Azure OpenAI API</text>
+    <text x="340" y="251" fill="#fff" text-anchor="middle">/openai · token limit+metrics</text>
+    <!-- logic app -->
+    <rect x="490" y="130" width="150" height="60" rx="6" fill="#8661C5" stroke="#5C2D91"/>
+    <text x="565" y="155" fill="#fff" font-weight="700" text-anchor="middle">Logic App</text>
+    <text x="565" y="172" fill="#fff" text-anchor="middle">validate·enrich·route</text>
+    <!-- service bus -->
+    <rect x="500" y="220" width="130" height="80" rx="10" fill="#F4EEFB" stroke="#8661C5"/>
+    <text x="565" y="252" fill="#3B2A6B" font-weight="700" text-anchor="middle">Service Bus</text>
+    <text x="565" y="269" fill="#3B2A6B" text-anchor="middle">permits-in</text>
+    <text x="565" y="285" fill="#3B2A6B" text-anchor="middle">dead-letter</text>
+    <!-- functions -->
+    <rect x="720" y="130" width="160" height="70" rx="6" fill="#0078D4" stroke="#0B4E8A"/>
+    <text x="800" y="158" fill="#fff" font-weight="700" text-anchor="middle">Azure Functions</text>
+    <text x="800" y="175" fill="#fff" text-anchor="middle">ProcessPermit</text>
+    <text x="800" y="191" fill="#fff" text-anchor="middle">(orchestrator)</text>
+    <!-- doc intel -->
+    <rect x="720" y="220" width="160" height="50" rx="6" fill="#EAF7EA" stroke="#107C10"/>
+    <text x="800" y="242" fill="#0B5A0B" text-anchor="middle">Document Intelligence</text>
+    <text x="800" y="258" fill="#0B5A0B" text-anchor="middle">field extraction</text>
+    <!-- aoai model -->
+    <rect x="720" y="290" width="160" height="50" rx="6" fill="#EAF7EA" stroke="#107C10"/>
+    <text x="800" y="312" fill="#0B5A0B" text-anchor="middle">Azure OpenAI model</text>
+    <text x="800" y="328" fill="#0B5A0B" text-anchor="middle">compliance score</text>
+    <!-- crm -->
+    <rect x="730" y="356" width="140" height="54" rx="10" fill="#EAF7EA" stroke="#107C10"/>
+    <text x="800" y="380" fill="#0B5A0B" font-weight="700" text-anchor="middle">CRM / records</text>
+    <text x="800" y="396" fill="#0B5A0B" text-anchor="middle">permit case</text>
+    <!-- event grid -->
+    <rect x="960" y="130" width="160" height="60" rx="6" fill="#D83B01" stroke="#A5310A"/>
+    <text x="1040" y="155" fill="#fff" font-weight="700" text-anchor="middle">Event Grid</text>
+    <text x="1040" y="172" fill="#fff" text-anchor="middle">PermitCreated</text>
+    <!-- notify -->
+    <rect x="960" y="220" width="160" height="50" rx="6" fill="#FEF0E7" stroke="#D83B01"/>
+    <text x="1040" y="242" fill="#A5310A" text-anchor="middle">Resident notification</text>
+    <text x="1040" y="258" fill="#A5310A" text-anchor="middle">(webhook)</text>
+    <!-- analytics -->
+    <rect x="960" y="290" width="160" height="50" rx="6" fill="#FEF0E7" stroke="#D83B01"/>
+    <text x="1040" y="312" fill="#A5310A" text-anchor="middle">Analytics / audit</text>
+    <text x="1040" y="328" fill="#A5310A" text-anchor="middle">(Service Bus sink)</text>
+  </g>
+
+  <!-- Observability band -->
+  <rect x="60" y="470" width="1080" height="50" rx="6" fill="#F3F2F1" stroke="#5E5E5E"/>
+  <text x="600" y="500" font-size="12" font-weight="700" fill="#323130" text-anchor="middle">Application Insights + Log Analytics — one correlation ID, end-to-end transaction</text>
+
+  <!-- Flow edges -->
+  <g fill="none" stroke-width="2">
+    <line x1="200" y1="165" x2="258" y2="160" stroke="#0F6CBD" marker-end="url(#arrB)"/>
+    <line x1="420" y1="160" x2="488" y2="160" stroke="#8661C5" marker-end="url(#arrP)"/>
+    <line x1="565" y1="190" x2="565" y2="218" stroke="#8661C5" marker-end="url(#arrP)"/>
+    <line x1="630" y1="260" x2="718" y2="180" stroke="#0078D4" marker-end="url(#arrB)"/>
+    <line x1="800" y1="200" x2="800" y2="218" stroke="#107C10" marker-end="url(#arrG)"/>
+    <line x1="800" y1="270" x2="800" y2="288" stroke="#107C10" marker-end="url(#arrG)"/>
+    <line x1="800" y1="340" x2="800" y2="354" stroke="#107C10" marker-end="url(#arrG)"/>
+    <line x1="880" y1="160" x2="958" y2="160" stroke="#D83B01" marker-end="url(#arrO)"/>
+    <line x1="1040" y1="190" x2="1040" y2="218" stroke="#D83B01" marker-end="url(#arrO)"/>
+    <line x1="1040" y1="270" x2="1040" y2="288" stroke="#D83B01" marker-end="url(#arrO)"/>
+    <!-- compliance call back through gateway -->
+    <path d="M720,175 C560,175 420,210 420,238" stroke="#0F6CBD" stroke-dasharray="5 4" marker-end="url(#arrB)"/>
+    <line x1="340" y1="270" x2="720" y2="305" stroke="#107C10" marker-end="url(#arrG)" opacity="0"/>
+    <line x1="420" y1="240" x2="718" y2="310" stroke="#107C10" marker-end="url(#arrG)"/>
+  </g>
+  <text x="470" y="205" font-size="9" fill="#0F548C">compliance call → back through AI gateway</text>
+
+  <!-- Telemetry dotted -->
+  <g fill="none" stroke="#8A8886" stroke-dasharray="3 3">
+    <line x1="340" y1="270" x2="340" y2="470"/>
+    <line x1="565" y1="300" x2="565" y2="470"/>
+    <line x1="800" y1="410" x2="800" y2="470"/>
+    <line x1="1040" y1="340" x2="1040" y2="470"/>
+  </g>
+</svg>

@@ -1,0 +1,75 @@
+<!--
+  Permits API — direct Service Bus enqueue policy (Option B).
+
+  POST /permits authenticates the caller (subscription key), stamps a correlation
+  ID, and enqueues the permit packet directly onto the Service Bus queue using
+  APIM's managed identity (no connection string). Returns 202 Accepted so the
+  caller is not blocked while the ProcessPermit function handles the message.
+
+  Demo Track steps: A2, A4, A6 (governed async submit) + A14 (rate limit → 429).
+  Requires the APIM system-assigned identity to have "Azure Service Bus Data
+  Sender" on the namespace. Replace {{servicebus-namespace}} / {{permits-queue}}
+  named values, or hard-code as shown by the deploy script.
+-->
+<policies>
+  <inbound>
+    <base />
+    <!-- Throttle per subscription key: 60 calls / minute (429 + Retry-After). -->
+    <rate-limit-by-key calls="60" renewal-period="60"
+                       counter-key="@(context.Subscription?.Key ?? context.Request.IpAddress)" />
+
+    <!-- Create or propagate a correlation ID for end-to-end tracing. -->
+    <set-variable name="correlationId"
+                  value="@(context.Request.Headers.GetValueOrDefault("X-Correlation-Id", Guid.NewGuid().ToString()))" />
+
+    <!-- Capture the caller's permit payload before issuing the send-request. -->
+    <set-variable name="permitBody" value="@(context.Request.Body.As<string>(preserveContent: true))" />
+
+    <!-- Acquire a managed-identity token for Service Bus into a variable. -->
+    <authentication-managed-identity resource="https://servicebus.azure.net"
+                                     output-token-variable-name="sbtoken" />
+
+    <!-- Enqueue the permit onto the Service Bus queue via its REST endpoint. -->
+    <send-request mode="new" response-variable-name="sbresponse" timeout="20" ignore-error="false">
+      <set-url>https://{{servicebus-namespace}}.servicebus.windows.net/{{permits-queue}}/messages</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Authorization" exists-action="override">
+        <value>@("Bearer " + (string)context.Variables["sbtoken"])</value>
+      </set-header>
+      <set-header name="Content-Type" exists-action="override">
+        <value>application/json</value>
+      </set-header>
+      <set-header name="BrokerProperties" exists-action="override">
+        <value>@(new Newtonsoft.Json.Linq.JObject(
+                  new Newtonsoft.Json.Linq.JProperty("CorrelationId", (string)context.Variables["correlationId"]),
+                  new Newtonsoft.Json.Linq.JProperty("MessageId", Guid.NewGuid().ToString())
+                ).ToString(Newtonsoft.Json.Formatting.None))</value>
+      </set-header>
+      <set-body>@((string)context.Variables["permitBody"])</set-body>
+    </send-request>
+
+    <!-- Return 202 Accepted with the correlation ID (async accepted). -->
+    <return-response>
+      <set-status code="202" reason="Accepted" />
+      <set-header name="X-Correlation-Id" exists-action="override">
+        <value>@((string)context.Variables["correlationId"])</value>
+      </set-header>
+      <set-header name="Content-Type" exists-action="override">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@("{\"status\":\"accepted\",\"correlationId\":\"" + (string)context.Variables["correlationId"] + "\"}")</set-body>
+    </return-response>
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+    <set-header name="X-Correlation-Id" exists-action="override">
+      <value>@((string)context.Variables.GetValueOrDefault("correlationId", ""))</value>
+    </set-header>
+  </on-error>
+</policies>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="b" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0F6CBD"/></marker>
+    <marker id="p" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8661C5"/></marker>
+    <marker id="g" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#107C10"/></marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="500" fill="#FFFFFF"/>
+  <text x="30" y="34" font-size="16" font-weight="700" fill="#0F548C">Two governed surfaces — one AI gateway</text>
+
+  <!-- portal -->
+  <rect x="30" y="120" width="140" height="60" rx="6" fill="#F3F2F1" stroke="#605E5C"/>
+  <text x="100" y="155" font-size="12" font-weight="700" fill="#201F1E" text-anchor="middle">Portal / Consumer</text>
+
+  <!-- APIM container -->
+  <rect x="220" y="70" width="360" height="410" rx="8" fill="#E5F0FB" stroke="#0F6CBD"/>
+  <text x="235" y="90" font-size="12" font-weight="700" fill="#0F548C">Azure API Management · AI gateway</text>
+
+  <!-- permits api -->
+  <rect x="250" y="120" width="300" height="60" rx="6" fill="#0F6CBD" stroke="#0B4E8A"/>
+  <text x="400" y="145" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Permits API  /permits</text>
+  <text x="400" y="163" font-size="11" fill="#fff" text-anchor="middle">JWT · rate limit · correlation ID</text>
+
+  <!-- aoai api -->
+  <rect x="250" y="210" width="300" height="150" rx="6" fill="#0F6CBD" stroke="#0B4E8A"/>
+  <text x="400" y="230" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Azure OpenAI API  /openai</text>
+  <g font-size="11">
+    <rect x="265" y="245" width="270" height="28" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="263" fill="#0B4E8A" text-anchor="middle">azure-openai-token-limit (per-consumer TPM)</text>
+    <rect x="265" y="280" width="270" height="28" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="298" fill="#0B4E8A" text-anchor="middle">azure-openai-emit-token-metric (UserId·Dept)</text>
+    <rect x="265" y="315" width="270" height="28" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="333" fill="#0B4E8A" text-anchor="middle">authentication-managed-identity (no key)</text>
+  </g>
+
+  <!-- app insights -->
+  <rect x="250" y="400" width="300" height="60" rx="6" fill="#F3F2F1" stroke="#5E5E5E"/>
+  <text x="400" y="425" font-size="11" font-weight="700" fill="#323130" text-anchor="middle">Application Insights</text>
+  <text x="400" y="442" font-size="11" fill="#323130" text-anchor="middle">token metrics → per-team chargeback</text>
+
+  <!-- right backends -->
+  <rect x="640" y="120" width="280" height="70" rx="6" fill="#F4EEFB" stroke="#8661C5"/>
+  <text x="780" y="150" font-size="12" font-weight="700" fill="#3B2A6B" text-anchor="middle">Logic App → Service Bus</text>
+  <text x="780" y="167" font-size="11" fill="#3B2A6B" text-anchor="middle">(permit pipeline)</text>
+  <rect x="640" y="250" width="280" height="70" rx="6" fill="#0078D4" stroke="#0B4E8A"/>
+  <text x="780" y="280" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Azure Functions · ProcessPermit</text>
+  <text x="780" y="297" font-size="11" fill="#fff" text-anchor="middle">compliance scoring</text>
+  <rect x="640" y="400" width="280" height="60" rx="6" fill="#EAF7EA" stroke="#107C10"/>
+  <text x="780" y="425" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">Azure OpenAI model</text>
+  <text x="780" y="442" font-size="11" fill="#0B5A0B" text-anchor="middle">(gpt-4o-mini)</text>
+
+  <!-- edges -->
+  <g fill="none" stroke-width="2">
+    <line x1="170" y1="150" x2="248" y2="150" stroke="#0F6CBD" marker-end="url(#b)"/>
+    <line x1="550" y1="150" x2="638" y2="150" stroke="#8661C5" marker-end="url(#p)"/>
+    <line x1="780" y1="190" x2="780" y2="248" stroke="#8661C5" marker-end="url(#p)"/>
+    <path d="M640,285 C600,285 560,300 552,300" stroke="#0F6CBD" stroke-dasharray="5 4" marker-end="url(#b)"/>
+    <line x1="552" y1="430" x2="640" y2="430" stroke="#107C10" marker-end="url(#g)" opacity="0"/>
+    <path d="M550,285 C580,360 600,430 638,430" stroke="#107C10" marker-end="url(#g)"/>
+    <line x1="400" y1="343" x2="400" y2="398" stroke="#8A8886" stroke-dasharray="3 3"/>
+  </g>
+  <text x="556" y="278" font-size="10" fill="#0F548C">compliance call (api-key header)</text>
+  <text x="556" y="360" font-size="10" fill="#0B5A0B">MI auth → model</text>
+</svg>

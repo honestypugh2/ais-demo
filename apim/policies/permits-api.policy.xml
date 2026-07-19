@@ -1,0 +1,56 @@
+<!--
+  Permits API — inbound governance policy (Demo Track steps A4, A6, A14).
+
+  Applied on every call to POST /permits:
+    • validate-jwt          — authenticate the caller against Microsoft Entra
+    • rate-limit-by-key     — throttle per subscription (per-consumer limits)
+    • set correlation ID    — stamp X-Correlation-Id that flows end to end
+    • set-backend-service   — route to the Logic App / backend
+  Replace the {{named-value}} placeholders with APIM named values.
+-->
+<policies>
+  <inbound>
+    <base />
+    <!-- Authenticate: reject invalid/expired tokens at the door (401). -->
+    <validate-jwt header-name="Authorization" failed-validation-httpcode="401"
+                  failed-validation-error-message="Unauthorized. Valid Entra token required.">
+      <openid-config url="https://login.microsoftonline.com/{{tenant-id}}/v2.0/.well-known/openid-configuration" />
+      <audiences>
+        <audience>api://ais-demo-permits</audience>
+      </audiences>
+      <issuers>
+        <issuer>https://sts.windows.net/{{tenant-id}}/</issuer>
+      </issuers>
+    </validate-jwt>
+
+    <!-- Throttle per subscription key: 60 calls / minute (429 + Retry-After). -->
+    <rate-limit-by-key calls="60" renewal-period="60"
+                       counter-key="@(context.Subscription?.Key ?? context.Request.IpAddress)" />
+
+    <!-- Create or propagate a correlation ID for end-to-end tracing. -->
+    <set-variable name="correlationId"
+                  value="@(context.Request.Headers.GetValueOrDefault("X-Correlation-Id", Guid.NewGuid().ToString()))" />
+    <set-header name="X-Correlation-Id" exists-action="override">
+      <value>@((string)context.Variables["correlationId"])</value>
+    </set-header>
+
+    <!-- Route to the backend (Logic App workflow trigger). -->
+    <set-backend-service backend-id="permit-intake-logicapp" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+    <!-- Echo the correlation ID back to the caller (returned with the 202). -->
+    <set-header name="X-Correlation-Id" exists-action="override">
+      <value>@((string)context.Variables["correlationId"])</value>
+    </set-header>
+  </outbound>
+  <on-error>
+    <base />
+    <set-header name="X-Correlation-Id" exists-action="override">
+      <value>@((string)context.Variables.GetValueOrDefault("correlationId", ""))</value>
+    </set-header>
+  </on-error>
+</policies>

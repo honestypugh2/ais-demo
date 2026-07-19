@@ -1,0 +1,24 @@
+{
+  "name": "ais-demo-portal",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "AIS Demo — permit intake portal (React + TypeScript). Stands in for the governed consumer application in front of API Management.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  }
+}

@@ -1,0 +1,57 @@
+<!--
+  Per-user cost attribution policy (ILLUSTRATIVE) for an Azure OpenAI API in APIM.
+
+  Resolves a caller identity with precedence: Entra `oid` > `x-user-id` > subscription id,
+  applies a per-user token budget, and emits a per-user token metric for chargeback.
+  Apply to the Azure OpenAI (model) API's inbound scope. Requires the APIM named
+  values `entra-openid-config` and `entra-audience` only if the Entra JWT branch
+  is enabled.
+-->
+<policies>
+  <inbound>
+    <base />
+    <!-- Resolve userId: Entra oid (if a bearer token is present) > x-user-id > subscription id. -->
+    <set-variable name="userId" value="@(context.Request.Headers.GetValueOrDefault("x-user-id", context.Subscription?.Id ?? "anonymous"))" />
+    <choose>
+      <when condition="@(context.Request.Headers.ContainsKey("Authorization"))">
+        <validate-jwt header-name="Authorization" failed-validation-httpcode="401" require-scheme="Bearer">
+          <openid-config url="{{entra-openid-config}}" />
+          <audiences>
+            <audience>{{entra-audience}}</audience>
+          </audiences>
+        </validate-jwt>
+        <set-variable name="userId" value="@(context.Request.Headers.GetValueOrDefault("Authorization","").Length > 0 ? (context.User?.Id ?? (string)context.Variables["userId"]) : (string)context.Variables["userId"])" />
+      </when>
+    </choose>
+
+    <!-- Per-user token budget (tokens per minute), keyed by resolved userId. -->
+    <azure-openai-token-limit
+      counter-key="@((string)context.Variables["userId"])"
+      tokens-per-minute="20000"
+      estimate-prompt-tokens="true"
+      remaining-tokens-header-name="x-tokens-remaining" />
+
+    <!-- Emit per-user token metric for chargeback dashboards (UserId / TeamId dims). -->
+    <azure-openai-emit-token-metric namespace="genai">
+      <dimension name="UserId" value="@((string)context.Variables["userId"])" />
+      <dimension name="TeamId" value="@(context.Request.Headers.GetValueOrDefault("x-team-id","unassigned"))" />
+    </azure-openai-emit-token-metric>
+
+    <!-- Structured trace for the Log Analytics gateway-logs path. -->
+    <trace source="per-user-cost-attribution" severity="information">
+      <message>@($"model call user={(string)context.Variables["userId"]}")</message>
+    </trace>
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+    <set-header name="x-user-id" exists-action="override">
+      <value>@((string)context.Variables["userId"])</value>
+    </set-header>
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

@@ -1,0 +1,49 @@
+# ── Python ───────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── UV ───────────────────────────────────────────────────────────
+# uv.lock IS committed for reproducibility; do not ignore it.
+
+# ── Environment / secrets ────────────────────────────────────────
+.env
+.env.*
+!.env.example
+local.settings.json
+*.local
+
+# ── Node / frontend ──────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# ── Azure / IaC ──────────────────────────────────────────────────
+.azure/
+*.bicep.json
+azd-env/
+
+# ── Editor / OS ──────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ── Source Demo Track (customer-specific; kept out of the repo) ───
+Bellevue_AIS_Demo_TalkTrack_Portal_and_Python.html
+*_TalkTrack_*.html
+.run/
+
+# ── draw.io sources (editable; committed renders live in docs/images/) ──
+docs/diagrams/*.drawio

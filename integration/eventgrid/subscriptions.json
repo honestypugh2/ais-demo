@@ -1,0 +1,33 @@
+{
+  "comment": "Event Grid subscriptions (Demo Track step A12). Two decoupled subscribers react to PermitCreated: a resident notification and an analytics/audit sink. Deployed via infra/modules/eventgrid.bicep; shown here as a portable reference.",
+  "topic": "evgt-permits",
+  "subscriptions": [
+    {
+      "name": "resident-notification",
+      "eventDeliverySchema": "CloudEventSchemaV1_0",
+      "filter": {
+        "includedEventTypes": ["AisDemo.Permitting.PermitCreated"]
+      },
+      "destination": {
+        "endpointType": "WebHook",
+        "properties": {
+          "endpointUrl": "https://<your-notification-endpoint>/api/notify"
+        }
+      },
+      "retryPolicy": { "maxDeliveryAttempts": 30, "eventTimeToLiveInMinutes": 1440 }
+    },
+    {
+      "name": "analytics-audit",
+      "eventDeliverySchema": "CloudEventSchemaV1_0",
+      "filter": {
+        "includedEventTypes": ["AisDemo.Permitting.PermitCreated"]
+      },
+      "destination": {
+        "endpointType": "ServiceBusQueue",
+        "properties": {
+          "resourceId": "/subscriptions/<sub>/resourceGroups/rg-ais-demo/providers/Microsoft.ServiceBus/namespaces/<ns>/queues/permit-analytics"
+        }
+      }
+    }
+  ]
+}

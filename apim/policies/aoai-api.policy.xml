@@ -1,0 +1,41 @@
+<!--
+  Azure OpenAI API — AI-gateway policy (Demo Track steps A5, B4).
+
+  The permit compliance-scoring model is fronted by APIM. This applies the
+  wordpress-chatbot AI-gateway pattern:
+    • azure-openai-token-limit        — cap tokens/min per consumer (cost control)
+    • azure-openai-emit-token-metric  — publish token usage to App Insights with
+                                        the subscription/department as a dimension
+                                        (per-team AI chargeback signal)
+    • managed-identity backend auth   — no model key on the wire
+-->
+<policies>
+  <inbound>
+    <base />
+    <!-- Per-consumer token budget: 429 when exceeded. -->
+    <azure-openai-token-limit counter-key="@(context.Subscription?.Key ?? "anonymous")"
+                              tokens-per-minute="20000"
+                              estimate-prompt-tokens="true"
+                              remaining-tokens-header-name="x-ratelimit-remaining-tokens"
+                              tokens-consumed-header-name="x-ratelimit-consumed-tokens" />
+
+    <!-- Emit token metrics for chargeback (dimension: consumer + department). -->
+    <azure-openai-emit-token-metric namespace="ais-demo-ai-gateway">
+      <dimension name="Subscription" value="@(context.Subscription?.Name ?? "unknown")" />
+      <dimension name="Department" value="@(context.Request.Headers.GetValueOrDefault("x-dept", "unknown"))" />
+    </azure-openai-emit-token-metric>
+
+    <!-- Authenticate to the Azure OpenAI backend with APIM's managed identity. -->
+    <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
+    <set-backend-service backend-id="azure-openai-backend" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>
