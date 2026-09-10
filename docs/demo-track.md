@@ -30,7 +30,7 @@ Portal → API Management → Logic App → Service Bus → Function/AI agent �
 | Step | Screen | Point to make |
 | --- | --- | --- |
 | A1 | Resource group | One group, one correlation ID, one governance model |
-| A2 | APIM → Permits API | Single governed front door; consumers never touch the backend |
+| A2 | API Center → APIs, then APIM → Permits API | Discover and reuse the cataloged contract; APIM remains the governed front door |
 | A3 | APIM → Products/Subscriptions | Per-consumer keys + quota → usage attribution |
 | A4 | APIM → Inbound policy | `validate-jwt`, `rate-limit-by-key`, correlation ID — policy, not process |
 | A5 | APIM → Azure OpenAI policy | `azure-openai-token-limit` + `azure-openai-emit-token-metric` (AI chargeback) |
@@ -52,6 +52,11 @@ Portal → API Management → Logic App → Service Bus → Function/AI agent �
 > render them with
 > [ai_gateway_extras/kql/token-monitoring.kql](../ai_gateway_extras/kql/token-monitoring.kql)
 > and [chargeback.kql](../ai_gateway_extras/kql/chargeback.kql).
+
+> **A2 presenter path:** in the API Center linked to APIM, show the cataloged
+> Permits, orchestrated Permits, and Azure OpenAI APIs. Open a definition or
+> deployment to connect discovery and reuse in API Center to runtime governance
+> in API Management.
 
 ## Part B — Azure SDK for Python walkthrough
 

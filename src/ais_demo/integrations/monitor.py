@@ -53,6 +53,7 @@ def _simulated_trace(correlation_id: str) -> list[list]:
         ["dependency", "send permits-in", "0", 12, "logic-app"],
         ["dependency", "ServiceBusTrigger", "0", 28, "func-permit-processor"],
         ["dependency", "analyze prebuilt-layout", "200", 612, "func-permit-processor"],
-        ["dependency", "POST /api/permits", "200", 33, "func-permit-processor"],
+        ["dependency", "score compliance via APIM AI gateway", "200", 384, "func-permit-processor"],
+        ["dependency", "create permit record", "201", 33, "func-permit-processor"],
         ["dependency", "publish PermitCreated", "200", 9, "func-permit-processor"],
     ]

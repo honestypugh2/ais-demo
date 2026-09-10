@@ -40,6 +40,7 @@ info "Resource group: $RG"
 az account show >/dev/null 2>&1 || { echo "Run 'az login' first." >&2; exit 1; }
 
 APIM=$(az resource list -g "$RG" --resource-type Microsoft.ApiManagement/service --query "[0].name" -o tsv)
+APIC=$(az resource list -g "$RG" --resource-type Microsoft.ApiCenter/services --query "[0].name" -o tsv)
 SBNS=$(az resource list -g "$RG" --resource-type Microsoft.ServiceBus/namespaces --query "[0].name" -o tsv)
 LOGICAPP=$(az resource list -g "$RG" --resource-type Microsoft.Logic/workflows --query "[0].name" -o tsv)
 LAW=$(az resource list -g "$RG" --resource-type Microsoft.OperationalInsights/workspaces --query "[0].name" -o tsv)
@@ -50,6 +51,7 @@ GATEWAY="https://${APIM}.azure-api.net"
 WID=$(az monitor log-analytics workspace show -g "$RG" -n "$LAW" --query customerId -o tsv 2>/dev/null || echo "")
 
 ok "APIM      : $APIM ($GATEWAY)"
+ok "API Center: ${APIC:-<none>} (API discovery, reuse, and governance)"
 ok "ServiceBus: $SBNS"
 ok "Logic App : ${LOGICAPP:-<none>}"
 ok "Workspace : ${LAW:-<none>}"

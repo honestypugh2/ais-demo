@@ -38,4 +38,12 @@ def test_trace_endpoint_returns_rows():
     assert resp.status_code == 200
     body = resp.json()
     assert body["correlationId"] == "test-correlation-id"
-    assert len(body["rows"]) > 0
+    assert [row[1] for row in body["rows"]] == [
+        "POST /permits",
+        "send permits-in",
+        "ServiceBusTrigger",
+        "analyze prebuilt-layout",
+        "score compliance via APIM AI gateway",
+        "create permit record",
+        "publish PermitCreated",
+    ]

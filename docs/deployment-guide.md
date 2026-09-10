@@ -66,9 +66,12 @@ azd up
 3. **API Management** — import the Permits API and the Azure OpenAI API, then
    apply the policies in `apim/policies/` (create the named values + backends
    listed in `apim/policies/README.md`).
-4. **Event Grid** — create the subscriptions in
+4. **API Center** — link an API Center service to API Management and synchronize
+   the Permits, orchestrated Permits, and Azure OpenAI APIs for discovery and
+   reuse.
+5. **Event Grid** — create the subscriptions in
    `integration/eventgrid/subscriptions.json`.
-5. **RBAC** — grant the Function's managed identity:
+6. **RBAC** — grant the Function's managed identity:
    - `Azure Service Bus Data Receiver` on the namespace
    - `Cognitive Services User` on Document Intelligence
    - `EventGrid Data Sender` on the topic

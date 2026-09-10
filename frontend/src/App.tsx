@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Info, X } from 'lucide-react';
 import { getHealth, getTrace, processQueue, submitPermit } from './api';
+import { getTraceServiceDetail } from './traceServiceDetails';
 import type { HealthResponse, ProcessResult, TraceResponse } from './types';
 
 export default function App() {
@@ -10,6 +12,7 @@ export default function App() {
   const [correlationId, setCorrelationId] = useState<string>('');
   const [results, setResults] = useState<ProcessResult[]>([]);
   const [trace, setTrace] = useState<TraceResponse | null>(null);
+  const [selectedTraceRow, setSelectedTraceRow] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>('');
 
@@ -22,6 +25,7 @@ export default function App() {
     setBusy(true);
     setError('');
     setTrace(null);
+    setSelectedTraceRow(null);
     setResults([]);
     try {
       const submit = await submitPermit({ name, type, parcel });
@@ -36,6 +40,14 @@ export default function App() {
       setBusy(false);
     }
   }
+
+  const selectedRow = selectedTraceRow === null ? null : trace?.rows[selectedTraceRow];
+  const operationIndex = trace?.columns.indexOf('name') ?? -1;
+  const resultIndex = trace?.columns.indexOf('resultCode') ?? -1;
+  const durationIndex = trace?.columns.indexOf('duration') ?? -1;
+  const selectedOperation =
+    selectedRow && operationIndex >= 0 ? String(selectedRow[operationIndex]) : '';
+  const selectedDetail = selectedOperation ? getTraceServiceDetail(selectedOperation) : null;
 
   return (
     <div className="page">
@@ -118,24 +130,85 @@ export default function App() {
           <h2>End-to-end trace</h2>
           {!trace && <p className="muted">The correlated journey appears here after submit.</p>}
           {trace && (
-            <table>
-              <thead>
-                <tr>
-                  {trace.columns.map((c) => (
-                    <th key={c}>{c}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {trace.rows.map((row, i) => (
-                  <tr key={i}>
-                    {row.map((cell, j) => (
-                      <td key={j}>{String(cell)}</td>
+            <>
+              <div className="trace-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      {trace.columns.map((c) => (
+                        <th key={c}>{c}</th>
+                      ))}
+                      <th className="details-column">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trace.rows.map((row, i) => (
+                      <tr
+                        key={i}
+                        className={selectedTraceRow === i ? 'selected-trace-row' : undefined}
+                      >
+                        {row.map((cell, j) => (
+                          <td key={j}>{String(cell)}</td>
+                        ))}
+                        <td className="details-cell">
+                          <button
+                            type="button"
+                            className="trace-detail-button"
+                            aria-label={`Explain ${String(row[operationIndex] ?? 'trace operation')}`}
+                            aria-expanded={selectedTraceRow === i}
+                            title="Explain this service"
+                            onClick={() => setSelectedTraceRow(selectedTraceRow === i ? null : i)}
+                          >
+                            <Info size={17} aria-hidden="true" />
+                          </button>
+                        </td>
+                      </tr>
                     ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  </tbody>
+                </table>
+              </div>
+              {selectedDetail && selectedRow && (
+                <section className="trace-explanation" aria-live="polite">
+                  <div className="trace-explanation-heading">
+                    <div>
+                      <p className="trace-kicker">Selected service</p>
+                      <h3>{selectedDetail.service}</h3>
+                    </div>
+                    <button
+                      type="button"
+                      className="trace-detail-button"
+                      aria-label="Close service explanation"
+                      title="Close explanation"
+                      onClick={() => setSelectedTraceRow(null)}
+                    >
+                      <X size={17} aria-hidden="true" />
+                    </button>
+                  </div>
+                  <dl className="trace-explanation-grid">
+                    <div>
+                      <dt>What it is</dt>
+                      <dd>{selectedDetail.what}</dd>
+                    </div>
+                    <div>
+                      <dt>How it is used</dt>
+                      <dd>{selectedDetail.how}</dd>
+                    </div>
+                    <div>
+                      <dt>Why it is used</dt>
+                      <dd>{selectedDetail.why}</dd>
+                    </div>
+                    <div>
+                      <dt>Current function</dt>
+                      <dd>{selectedDetail.currentFunction}</dd>
+                    </div>
+                  </dl>
+                  <p className="trace-observation">
+                    Observed in this trace: result {String(selectedRow[resultIndex] ?? 'n/a')} in{' '}
+                    {String(selectedRow[durationIndex] ?? 'n/a')} ms.
+                  </p>
+                </section>
+              )}
+            </>
           )}
         </section>
       </main>

@@ -27,6 +27,7 @@ per-team AI chargeback signal.
 
 | Capability | Where | Demo Track step |
 | --- | --- | --- |
+| API discovery, reuse, and catalog governance | API Center | A2 |
 | Governed, secured APIs (Entra JWT + rate limiting) | API Management | A4, A6, A14 / B1 |
 | AI-gateway cost control (token limits + metrics) | API Management | A5 / B4 |
 | Reliable async messaging + dead-letter | Service Bus | A8, A15 / B2, B7 |

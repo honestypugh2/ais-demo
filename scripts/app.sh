@@ -42,14 +42,25 @@ is_running() { # is_running <pidfile>
   [ -f "$f" ] && kill -0 "$(cat "$f")" 2>/dev/null
 }
 
+port_in_use() { # port_in_use <port>
+  ss -ltn "sport = :$1" | grep -q LISTEN
+}
+
 start() {
   # Backend
   if is_running "$API_PID"; then
     warn "Backend already running (pid $(cat "$API_PID"))."
   else
+    rm -f "$API_PID"
+    if port_in_use "$API_PORT"; then
+      echo "Port $API_PORT is already in use. Choose another with API_PORT=<port>." >&2
+      exit 1
+    fi
     info "Starting FastAPI (SIMULATED_MODE=$SIMULATED_MODE) on :$API_PORT…"
     ( cd "$ROOT" && SIMULATED_MODE="$SIMULATED_MODE" setsid nohup uv run uvicorn ais_demo.api.main:app \
         --app-dir src --host 127.0.0.1 --port "$API_PORT" >"$API_LOG" 2>&1 & echo $! >"$API_PID" )
+    sleep 1
+    is_running "$API_PID" || { echo "Backend failed to start. See .run/api.log." >&2; exit 1; }
     ok "Backend pid $(cat "$API_PID")  → http://localhost:$API_PORT  (logs: .run/api.log)"
   fi
 
@@ -61,8 +72,15 @@ start() {
   if is_running "$WEB_PID"; then
     warn "Frontend already running (pid $(cat "$WEB_PID"))."
   else
+    rm -f "$WEB_PID"
+    if port_in_use "$WEB_PORT"; then
+      echo "Port $WEB_PORT is already in use. Choose another with WEB_PORT=<port>." >&2
+      exit 1
+    fi
     info "Starting Vite portal on :$WEB_PORT…"
-    ( cd "$ROOT/frontend" && setsid nohup npm run dev -- --port "$WEB_PORT" >>"$WEB_LOG" 2>&1 & echo $! >"$WEB_PID" )
+    ( cd "$ROOT/frontend" && API_PORT="$API_PORT" setsid nohup npm run dev -- --port "$WEB_PORT" >>"$WEB_LOG" 2>&1 & echo $! >"$WEB_PID" )
+    sleep 1
+    is_running "$WEB_PID" || { echo "Frontend failed to start. See .run/web.log." >&2; exit 1; }
     ok "Frontend pid $(cat "$WEB_PID")  → http://localhost:$WEB_PORT  (logs: .run/web.log)"
   fi
 
@@ -89,21 +107,12 @@ stop_one() { # stop_one <name> <pidfile>
   fi
 }
 
-free_port() { # free_port <port>  — last-resort cleanup for stray listeners
-  local port="$1"
-  if command -v fuser >/dev/null 2>&1; then
-    fuser -k "${port}/tcp" 2>/dev/null || true
-  fi
-}
-
 stop() {
   stop_one "frontend" "$WEB_PID"
   stop_one "backend" "$API_PID"
-  # Best-effort: reap any stray processes still bound to the demo ports/commands.
+  # Best-effort: reap stray processes for this demo without touching unrelated listeners.
   pkill -f "uvicorn ais_demo.api.main" 2>/dev/null || true
   pkill -f "vite.*--port $WEB_PORT" 2>/dev/null || true
-  free_port "$API_PORT"
-  free_port "$WEB_PORT"
 }
 
 status() {

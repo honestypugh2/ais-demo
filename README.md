@@ -33,6 +33,7 @@ status, 100/100 compliance, event published) and the correlated hop-by-hop trace
 
 | Capability | Azure service |
 | --- | --- |
+| API discovery, reuse, and catalog governance | **Azure API Center** |
 | Governed, secured APIs (Entra JWT + rate limiting + correlation ID) | **API Management** |
 | AI-gateway cost control (token limits + per-team token metrics) | **API Management** (AI gateway) |
 | Low-code orchestration (validate → enrich → route) | **Logic Apps** |
