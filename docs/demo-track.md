@@ -56,7 +56,9 @@ Portal → API Management → Logic App → Service Bus → Function/AI agent �
 > **A2 presenter path:** in the API Center linked to APIM, show the cataloged
 > Permits, orchestrated Permits, and Azure OpenAI APIs. Open a definition or
 > deployment to connect discovery and reuse in API Center to runtime governance
-> in API Management.
+> in API Management. See the
+> [API Center portal guide](api-center-portal.md) for the complete setup and
+> presentation flow.
 
 ## Part B — Azure SDK for Python walkthrough
 

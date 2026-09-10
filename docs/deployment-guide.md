@@ -68,7 +68,8 @@ azd up
    listed in `apim/policies/README.md`).
 4. **API Center** — link an API Center service to API Management and synchronize
    the Permits, orchestrated Permits, and Azure OpenAI APIs for discovery and
-   reuse.
+   reuse. Configure and present the developer catalog with the
+   [API Center portal guide](api-center-portal.md).
 5. **Event Grid** — create the subscriptions in
    `integration/eventgrid/subscriptions.json`.
 6. **RBAC** — grant the Function's managed identity:
