@@ -16,12 +16,17 @@
 # Prereqs: az login (Contributor on the RG); python3; curl.
 # Usage:   scripts/run_demo.sh            # both paths
 #          RG=rg-ais-demo scripts/run_demo.sh
+#          SUBSCRIPTION_ID=<subscription-id> scripts/run_demo.sh
+#          AZURE_TENANT_ID=<tenant-id> scripts/run_demo.sh
+#          scripts/run_demo.sh validate   # check access without sending traffic
 #          scripts/run_demo.sh a          # Part A only
 #          scripts/run_demo.sh b          # Part B only
 # ============================================================================
 set -euo pipefail
 
 RG="${RG:-rg-ais-demo}"
+SUBSCRIPTION_ID="${SUBSCRIPTION_ID:-}"
+AZURE_TENANT_ID="${AZURE_TENANT_ID:-}"
 PART="${1:-all}"
 POLL_SECONDS="${POLL_SECONDS:-90}"
 
@@ -37,18 +42,62 @@ require az; require curl; require python3
 # Discover the demo resources in the resource group (no hard-coded suffixes).
 # ---------------------------------------------------------------------------
 info "Resource group: $RG"
-az account show >/dev/null 2>&1 || { echo "Run 'az login' first." >&2; exit 1; }
+if ! az account show >/dev/null 2>&1; then
+  info "Signing in to Azure${AZURE_TENANT_ID:+ tenant $AZURE_TENANT_ID}..."
+  if [ -n "$AZURE_TENANT_ID" ]; then
+    az login --tenant "$AZURE_TENANT_ID" --only-show-errors >/dev/null
+  else
+    az login --only-show-errors >/dev/null
+  fi
+fi
+az account show >/dev/null 2>&1 || {
+  echo "Azure CLI authentication failed. Run 'az login' and try again." >&2
+  exit 1
+}
 
-APIM=$(az resource list -g "$RG" --resource-type Microsoft.ApiManagement/service --query "[0].name" -o tsv)
-APIC=$(az resource list -g "$RG" --resource-type Microsoft.ApiCenter/services --query "[0].name" -o tsv)
-SBNS=$(az resource list -g "$RG" --resource-type Microsoft.ServiceBus/namespaces --query "[0].name" -o tsv)
-LOGICAPP=$(az resource list -g "$RG" --resource-type Microsoft.Logic/workflows --query "[0].name" -o tsv)
-LAW=$(az resource list -g "$RG" --resource-type Microsoft.OperationalInsights/workspaces --query "[0].name" -o tsv)
-SUB=$(az account show --query id -o tsv)
+if [ -z "$SUBSCRIPTION_ID" ]; then
+  CURRENT_SUBSCRIPTION=$(az account show --query id -o tsv)
+  if az group show --subscription "$CURRENT_SUBSCRIPTION" --name "$RG" >/dev/null 2>&1; then
+    SUBSCRIPTION_ID="$CURRENT_SUBSCRIPTION"
+  else
+    mapfile -t MATCHING_SUBSCRIPTIONS < <(
+      az account list --query "[?state=='Enabled'].id" -o tsv |
+        xargs -r -P 12 -I '{}' sh -c \
+          'az group show --subscription "$1" --name "$2" >/dev/null 2>&1 && printf "%s\n" "$1"' \
+          _ '{}' "$RG" || true
+    )
+    if [ "${#MATCHING_SUBSCRIPTIONS[@]}" -eq 1 ]; then
+      SUBSCRIPTION_ID="${MATCHING_SUBSCRIPTIONS[0]}"
+    elif [ "${#MATCHING_SUBSCRIPTIONS[@]}" -eq 0 ]; then
+      echo "Cannot find resource group '$RG' in an accessible subscription." >&2
+      echo "Set SUBSCRIPTION_ID explicitly and refresh credentials with 'az login' if access was recently granted." >&2
+      exit 1
+    else
+      echo "Resource group '$RG' exists in multiple subscriptions." >&2
+      printf '  %s\n' "${MATCHING_SUBSCRIPTIONS[@]}" >&2
+      echo "Set SUBSCRIPTION_ID to choose one." >&2
+      exit 1
+    fi
+  fi
+fi
+
+az group show --subscription "$SUBSCRIPTION_ID" --name "$RG" >/dev/null 2>&1 || {
+  echo "Cannot access resource group '$RG' in subscription '$SUBSCRIPTION_ID'." >&2
+  echo "Check the subscription ID, RBAC assignment, and Azure CLI login." >&2
+  exit 1
+}
+info "Subscription: $SUBSCRIPTION_ID"
+
+APIM=$(az resource list --subscription "$SUBSCRIPTION_ID" -g "$RG" --resource-type Microsoft.ApiManagement/service --query "[0].name" -o tsv)
+APIC=$(az resource list --subscription "$SUBSCRIPTION_ID" -g "$RG" --resource-type Microsoft.ApiCenter/services --query "[0].name" -o tsv)
+SBNS=$(az resource list --subscription "$SUBSCRIPTION_ID" -g "$RG" --resource-type Microsoft.ServiceBus/namespaces --query "[0].name" -o tsv)
+LOGICAPP=$(az resource list --subscription "$SUBSCRIPTION_ID" -g "$RG" --resource-type Microsoft.Logic/workflows --query "[0].name" -o tsv)
+LAW=$(az resource list --subscription "$SUBSCRIPTION_ID" -g "$RG" --resource-type Microsoft.OperationalInsights/workspaces --query "[0].name" -o tsv)
+SUB="$SUBSCRIPTION_ID"
 
 [ -n "$APIM" ] || { echo "No API Management instance found in $RG" >&2; exit 1; }
 GATEWAY="https://${APIM}.azure-api.net"
-WID=$(az monitor log-analytics workspace show -g "$RG" -n "$LAW" --query customerId -o tsv 2>/dev/null || echo "")
+WID=$(az monitor log-analytics workspace show --subscription "$SUB" -g "$RG" -n "$LAW" --query customerId -o tsv 2>/dev/null || echo "")
 
 ok "APIM      : $APIM ($GATEWAY)"
 ok "API Center: ${APIC:-<none>} (API discovery, reuse, and governance)"
@@ -62,6 +111,11 @@ KEY=$(az rest --method post \
   --query primaryKey -o tsv)
 [ -n "$KEY" ] || { echo "Could not retrieve an APIM subscription key" >&2; exit 1; }
 
+if [ "$PART" = "validate" ]; then
+  ok "Azure authentication, resource discovery, and APIM access validated."
+  exit 0
+fi
+
 # ---------------------------------------------------------------------------
 # Poll Application Insights for the end-to-end trace of a given parcel.
 # ---------------------------------------------------------------------------
@@ -72,7 +126,7 @@ show_trace() {
   local deadline=$(( $(date +%s) + POLL_SECONDS ))
   while [ "$(date +%s)" -lt "$deadline" ]; do
     local rows
-    rows=$(az monitor log-analytics query -w "$WID" --analytics-query \
+    rows=$(az monitor log-analytics query --subscription "$SUB" -w "$WID" --analytics-query \
       "AppTraces | where TimeGenerated > ago(15m) | where Message has '$parcel' or Message has 'ProcessPermit' or Message has 'compliance' or Message has 'published' | project TimeGenerated, Message | order by TimeGenerated asc | take 15" \
       -o json 2>/dev/null || echo "[]")
     if printf '%s' "$rows" | python3 -c '
@@ -155,7 +209,7 @@ case "$PART" in
   a|A) part_a ;;
   b|B) part_b ;;
   all) part_a; part_b ;;
-  *)   echo "Usage: $0 [a|b|all]" >&2; exit 1 ;;
+  *)   echo "Usage: $0 [a|b|all|validate]" >&2; exit 1 ;;
 esac
 
 step "Done"

@@ -25,7 +25,23 @@ from the repo root.
 
 # Rehearse the deployed demo end to end
 ./scripts/run_demo.sh         # both paths + AI gateway
+
+# Check Azure access and resource discovery without sending demo traffic
+./scripts/run_demo.sh validate
+
+# Sign in to a specific tenant before discovering the demo resources
+AZURE_TENANT_ID=<tenant-id> ./scripts/run_demo.sh
+
+# Override subscription selection when the resource-group name is ambiguous
+SUBSCRIPTION_ID=<subscription-id> ./scripts/run_demo.sh
 ```
+
+`run_demo.sh` reuses a valid Azure CLI session and runs `az login` only when no
+session is available. Set `AZURE_TENANT_ID` when signing in to a guest tenant.
+It uses the current Azure CLI subscription when that subscription contains the
+resource group; otherwise, it discovers a unique match across accessible
+subscriptions. Set `SUBSCRIPTION_ID` to bypass discovery or resolve an
+ambiguous resource-group name.
 
 `app.sh` honors env overrides: `SIMULATED_MODE` (default `true`), `API_PORT`
 (8000), `WEB_PORT` (5173). PIDs and logs are written to `.run/` (gitignored).
