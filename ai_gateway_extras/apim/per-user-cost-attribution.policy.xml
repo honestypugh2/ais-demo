@@ -10,10 +10,15 @@
 <policies>
   <inbound>
     <base />
-    <!-- Resolve userId: Entra oid (if a bearer token is present) > x-user-id > subscription id. -->
+    <!-- Resolve userId: Entra oid (if a bearer JWT is present) > x-user-id > subscription id.
+         The OpenAI client also sends the APIM key as a bearer value, so only a
+         JWT-shaped token (three dot-separated segments) takes the Entra branch. -->
     <set-variable name="userId" value="@(context.Request.Headers.GetValueOrDefault("x-user-id", context.Subscription?.Id ?? "anonymous"))" />
     <choose>
-      <when condition="@(context.Request.Headers.GetValueOrDefault("Authorization", "").StartsWith("Bearer "))">
+      <when condition="@{
+          var auth = context.Request.Headers.GetValueOrDefault("Authorization", "");
+          return auth.StartsWith("Bearer ") && auth.Substring(7).Split('.').Length == 3;
+      }">
         <validate-azure-ad-token tenant-id="{{tenant-id}}" failed-validation-httpcode="401"
                                  output-token-variable-name="entraToken">
           <audiences>

@@ -72,8 +72,14 @@ Parameters worth knowing:
   [Upgrade from Azure OpenAI to Foundry](https://learn.microsoft.com/azure/foundry/how-to/upgrade-azure-openai).
 - Role assignments are now declared in Bicep with deterministic names. Role
   assignments created by hand for the same identity, role, and scope make the
-  deployment fail with `RoleAssignmentExists`. Remove the manual ones first, for
-  example:
+  deployment fail with `RoleAssignmentExists`. In the original demo environment
+  these are: APIM's identity (`Cognitive Services OpenAI User` on the model
+  account, `Azure Service Bus Data Sender`), the Logic App's identity
+  (`Azure Service Bus Data Sender`), the Function's identity
+  (`Azure Service Bus Data Receiver`, `Cognitive Services User` on Document
+  Intelligence, `EventGrid Data Sender`), and API Center's identity
+  (`API Management Service Reader Role`). Remove them once before the first
+  Bicep deployment, for example:
 
   ```bash
   az role assignment list -g rg-ais-demo --query "[].{id:id,role:roleDefinitionName,principal:principalId}" -o table

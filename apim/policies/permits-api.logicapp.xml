@@ -33,6 +33,24 @@
       <set-body>@((string)context.Variables["permitBody"])</set-body>
     </send-request>
 
+    <!-- Pass validation errors (400) and failures back to the caller instead of
+         claiming the permit was accepted. -->
+    <choose>
+      <when condition="@(((IResponse)context.Variables["laresponse"]).StatusCode != 202)">
+        <return-response>
+          <set-status code="@(((IResponse)context.Variables["laresponse"]).StatusCode)"
+                      reason="@(((IResponse)context.Variables["laresponse"]).StatusReason)" />
+          <set-header name="X-Correlation-Id" exists-action="override">
+            <value>@((string)context.Variables["correlationId"])</value>
+          </set-header>
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>@(((IResponse)context.Variables["laresponse"]).Body.As<string>())</set-body>
+        </return-response>
+      </when>
+    </choose>
+
     <return-response>
       <set-status code="202" reason="Accepted" />
       <set-header name="X-Correlation-Id" exists-action="override">
