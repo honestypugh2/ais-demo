@@ -5,11 +5,9 @@ or an HTTP stub). In the deployed function this uses a managed identity — no
 secret on the wire. In simulated mode records are kept in memory.
 """
 
-from __future__ import annotations
-
 import uuid
 
-import httpx
+import httpx2
 
 from ais_demo.config import get_settings
 from ais_demo.core.logging import get_logger
@@ -38,7 +36,7 @@ def create_permit_record(
         logger.info("CRM permit created: %s (simulated)", permit_id)
         return permit_id
 
-    resp = httpx.post(f"{settings.crm_base}/api/permits", json=payload, timeout=30)
+    resp = httpx2.post(f"{settings.crm_base}/api/permits", json=payload, timeout=30)
     resp.raise_for_status()
     permit_id = resp.json().get("permitId", f"P-{uuid.uuid4().hex[:8].upper()}")
     logger.info("CRM permit created: %s", permit_id)

@@ -6,8 +6,6 @@ message properties, the Function, the CRM write, and the Event Grid event — so
 the whole journey renders as one distributed trace in Application Insights.
 """
 
-from __future__ import annotations
-
 import uuid
 from contextvars import ContextVar
 

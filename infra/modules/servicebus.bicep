@@ -1,10 +1,11 @@
-// Service Bus namespace + queues (durable messaging with dead-lettering).
+// Service Bus namespace + queues (durable messaging with dead-lettering and
+// duplicate detection). Local (SAS) auth is disabled: all clients use Entra ID.
 param namespaceName string
 param location string
 param tags object
 param queueNames array
 
-resource namespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' = {
+resource namespace 'Microsoft.ServiceBus/namespaces@2026-01-01' = {
   name: namespaceName
   location: location
   tags: tags
@@ -13,11 +14,12 @@ resource namespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' = {
     tier: 'Standard'
   }
   properties: {
-    disableLocalAuth: false
+    disableLocalAuth: true
+    minimumTlsVersion: '1.2'
   }
 }
 
-resource queues 'Microsoft.ServiceBus/namespaces/queues@2022-10-01-preview' = [
+resource queues 'Microsoft.ServiceBus/namespaces/queues@2026-01-01' = [
   for q in queueNames: {
     parent: namespace
     name: q
@@ -32,4 +34,5 @@ resource queues 'Microsoft.ServiceBus/namespaces/queues@2022-10-01-preview' = [
 ]
 
 output namespaceId string = namespace.id
+output namespaceName string = namespace.name
 output namespaceFqdn string = '${namespace.name}.servicebus.windows.net'

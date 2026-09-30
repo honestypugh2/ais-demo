@@ -4,8 +4,6 @@ Usage:
     uv run python scripts/seed_permits.py [count]
 """
 
-from __future__ import annotations
-
 import sys
 
 from ais_demo.core.correlation import new_correlation_id

@@ -4,8 +4,6 @@ These models are intentionally generic. To adapt the demo to another intake
 use case, change the field set here and the sample data under ``data/``.
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
@@ -21,6 +19,9 @@ class PermitRequest(BaseModel):
         default=None,
         alias="documentUrl",
         description="URL to the submitted packet (application form + attachments)",
+    )
+    applicant_email: str | None = Field(
+        default=None, alias="applicantEmail", description="Applicant contact (synthetic)"
     )
 
     model_config = {"populate_by_name": True}

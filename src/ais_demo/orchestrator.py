@@ -6,8 +6,6 @@ framework-agnostic so it can be hosted by the FastAPI API, the Azure Functions
 host, or invoked directly from the Python SDK walkthrough.
 """
 
-from __future__ import annotations
-
 from ais_demo.config import get_settings
 from ais_demo.core.logging import get_logger
 from ais_demo.integrations import ai_gateway, crm, document_intelligence, event_grid

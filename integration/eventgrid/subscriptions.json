@@ -1,12 +1,14 @@
 {
-  "comment": "Event Grid subscriptions (Demo Track step A12). Two decoupled subscribers react to PermitCreated: a resident notification and an analytics/audit sink. Deployed via infra/modules/eventgrid.bicep; shown here as a portable reference.",
+  "comment": "Event Grid subscriptions (Demo Track step A12). Two decoupled subscribers react to PermitCreated: a resident notification webhook and an analytics/audit Service Bus sink delivered with the topic's managed identity. Deployed by infra/modules/eventgrid.bicep; shown here as a portable reference.",
   "topic": "evgt-permits",
   "subscriptions": [
     {
       "name": "resident-notification",
       "eventDeliverySchema": "CloudEventSchemaV1_0",
       "filter": {
-        "includedEventTypes": ["AisDemo.Permitting.PermitCreated"]
+        "includedEventTypes": [
+          "AisDemo.Permitting.PermitCreated"
+        ]
       },
       "destination": {
         "endpointType": "WebHook",
@@ -14,19 +16,33 @@
           "endpointUrl": "https://<your-notification-endpoint>/api/notify"
         }
       },
-      "retryPolicy": { "maxDeliveryAttempts": 30, "eventTimeToLiveInMinutes": 1440 }
+      "retryPolicy": {
+        "maxDeliveryAttempts": 30,
+        "eventTimeToLiveInMinutes": 1440
+      }
     },
     {
       "name": "analytics-audit",
       "eventDeliverySchema": "CloudEventSchemaV1_0",
       "filter": {
-        "includedEventTypes": ["AisDemo.Permitting.PermitCreated"]
+        "includedEventTypes": [
+          "AisDemo.Permitting.PermitCreated"
+        ]
       },
-      "destination": {
-        "endpointType": "ServiceBusQueue",
-        "properties": {
-          "resourceId": "/subscriptions/<sub>/resourceGroups/rg-ais-demo/providers/Microsoft.ServiceBus/namespaces/<ns>/queues/permit-analytics"
+      "deliveryWithResourceIdentity": {
+        "identity": {
+          "type": "SystemAssigned"
+        },
+        "destination": {
+          "endpointType": "ServiceBusQueue",
+          "properties": {
+            "resourceId": "/subscriptions/<sub>/resourceGroups/rg-ais-demo/providers/Microsoft.ServiceBus/namespaces/<ns>/queues/permit-analytics"
+          }
         }
+      },
+      "retryPolicy": {
+        "maxDeliveryAttempts": 30,
+        "eventTimeToLiveInMinutes": 1440
       }
     }
   ]

@@ -32,8 +32,8 @@ Portal → API Management → Logic App → Service Bus → Function/AI agent �
 | A1 | Resource group | One group, one correlation ID, one governance model |
 | A2 | API Center → APIs, then APIM → Permits API | Discover and reuse the cataloged contract; APIM remains the governed front door |
 | A3 | APIM → Products/Subscriptions | Per-consumer keys + quota → usage attribution |
-| A4 | APIM → Inbound policy | `validate-jwt`, `rate-limit-by-key`, correlation ID — policy, not process |
-| A5 | APIM → Azure OpenAI policy | `azure-openai-token-limit` + `azure-openai-emit-token-metric` (AI chargeback) |
+| A4 | APIM → Inbound policy | `validate-azure-ad-token`, `rate-limit-by-key`, correlation ID — policy, not process |
+| A5 | APIM → Azure OpenAI v1 policy | `llm-content-safety` + `llm-token-limit` + `llm-emit-token-metric` (safety + AI chargeback) |
 | A6 | APIM → Test console | Submit a valid packet → `202` + `X-Correlation-Id` |
 | A7 | Logic App → run history | validate → enrich → send-to-Service-Bus |
 | A8 | Service Bus Explorer | Durable message on `permits-in`; dead-letter sub-queue |

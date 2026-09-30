@@ -5,8 +5,6 @@ Usage:
     uv run python -m ais_demo.demo.run_demo
 """
 
-from __future__ import annotations
-
 import json
 
 from ais_demo.config import get_settings

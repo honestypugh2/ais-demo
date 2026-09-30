@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 # ---- Build stage: install dependencies with uv -----------------------------
-FROM python:3.11-slim AS build
+FROM python:3.14-slim AS build
 
 # Install uv (fast, reproducible dependency management).
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.12.21 /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev || uv sync --no-dev
 
 # ---- Runtime stage ---------------------------------------------------------
-FROM python:3.11-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 # Create a non-root user.
 RUN useradd --create-home --uid 10001 appuser

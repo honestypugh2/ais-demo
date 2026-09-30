@@ -34,15 +34,15 @@ status, 100/100 compliance, event published) and the correlated hop-by-hop trace
 | Capability | Azure service |
 | --- | --- |
 | API discovery, reuse, and catalog governance | **Azure API Center** |
-| Governed, secured APIs (Entra JWT + rate limiting + correlation ID) | **API Management** |
-| AI-gateway cost control (token limits + per-team token metrics) | **API Management** (AI gateway) |
+| Governed, secured APIs (Entra token validation + rate limiting + correlation ID) | **API Management** |
+| AI-gateway safety and cost control (content safety + Prompt Shields, token limits + quotas, per-team token metrics, circuit breaker) | **API Management** (AI gateway) |
 | Low-code orchestration (validate → enrich → route) | **Logic Apps** |
 | Reliable async messaging with dead-lettering | **Service Bus** |
-| AI field extraction | **Azure AI Document Intelligence** |
-| AI policy-compliance scoring | **Azure OpenAI** (fronted by APIM) |
+| AI field extraction (layout + key-value pairs) | **Azure Document Intelligence** |
+| AI policy-compliance scoring (`gpt-5.4-mini`, Azure OpenAI v1 Responses API, structured output) | **Microsoft Foundry** (fronted by APIM) |
 | Event-driven fan-out (decoupled subscribers) | **Event Grid** |
 | Serverless processing | **Azure Functions** |
-| End-to-end distributed tracing | **Application Insights** |
+| End-to-end distributed tracing (OpenTelemetry) | **Application Insights** |
 
 ```
 Portal → API Management → Logic App → Service Bus → Function/AI agent → CRM → Event Grid → Notification
@@ -57,13 +57,14 @@ not committed.)
 
 ## Tech stack
 
-- **Python 3.11+**, `src/` layout, managed with **uv**
+- **Python 3.14+**, `src/` layout, managed with **uv**
 - **FastAPI** orchestrator + **Azure Functions** host (Service Bus trigger) — both reuse `src/ais_demo`
 - Latest stable Azure SDKs: `azure-identity`, `azure-servicebus`,
   `azure-ai-documentintelligence`, `azure-eventgrid`,
-  `azure-monitor-query`, `openai`
-- **React 18 + TypeScript + Vite** portal
-- **Bicep** IaC · **pytest**, **ruff**, **mypy**
+  `azure-monitor-query`, `azure-monitor-opentelemetry`, and `openai` 3.x
+  (Azure OpenAI **v1 API** — no dated `api-version`), on `httpx2`
+- **React 19 + TypeScript 7 + Vite 8** portal (Node.js 24 LTS)
+- **Bicep** IaC (every resource, API, policy, and role assignment) · **pytest**, **ruff**, **mypy**
 - **Simulated mode** so the whole demo runs offline with no Azure credentials
 
 ## Quickstart (no Azure required)
@@ -145,8 +146,10 @@ Grid) stays the same.
 
 ## Deploy to Azure
 
-See [docs/deployment-guide.md](docs/deployment-guide.md) — Bicep or `azd up`,
-plus the RBAC and switch-to-live steps.
+See [docs/deployment-guide.md](docs/deployment-guide.md) — one Bicep deployment
+(or `azd provision`) creates and wires the whole stack, including APIM APIs and
+policies, the Logic App workflow, Event Grid subscriptions, and managed-identity
+role assignments; then publish the Function code.
 
 For the full **path to production** (security, reliability, observability,
 evaluation, CI/CD) mapped to the Well-Architected Framework and Microsoft

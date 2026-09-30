@@ -6,8 +6,6 @@ Document Intelligence and CRM calls, and the Event Grid publish. In simulated
 mode a representative trace is returned so the demo works offline.
 """
 
-from __future__ import annotations
-
 from datetime import timedelta
 
 from ais_demo.config import get_settings

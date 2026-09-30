@@ -9,14 +9,14 @@ Run:
     uv run python ai_gateway_extras/model_router_decisions.py
 """
 
-from __future__ import annotations
-
 import os
 
 from dotenv import load_dotenv
 
+from ais_demo.integrations.ai_gateway import gateway_client
+
 # Two deployment names fronted by the same APIM gateway.
-CHEAP_MODEL = os.environ.get("AOAI_DEPLOYMENT", "gpt-4o-mini")
+CHEAP_MODEL = os.environ.get("AOAI_DEPLOYMENT", "gpt-5.4-mini")
 CAPABLE_MODEL = os.environ.get("AOAI_DEPLOYMENT_CAPABLE", CHEAP_MODEL)
 
 COMPLEX_HINTS = ("analyze", "compare", "reason", "policy", "compliance", "justify")
@@ -34,7 +34,6 @@ def main() -> None:
     load_dotenv()
     base = os.environ.get("AOAI_VIA_APIM_BASE")
     key = os.environ.get("APIM_SUBSCRIPTION_KEY")
-    api_version = os.environ.get("AOAI_API_VERSION", "2024-10-21")
 
     prompts = [
         "What is a permit?",
@@ -46,13 +45,12 @@ def main() -> None:
         print(f"[route] {reason:<34} model={model}")
         if not base or not key:
             continue
-        from openai import AzureOpenAI
-
-        client = AzureOpenAI(azure_endpoint=base, api_key=key, api_version=api_version)
-        resp = client.chat.completions.create(
+        client = gateway_client(base, key)
+        resp = client.responses.create(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.0,
+            input=prompt,
+            reasoning={"effort": "low"},
+            store=False,
         )
         tokens = resp.usage.total_tokens if resp.usage else 0
         print(f"         tokens={tokens}")

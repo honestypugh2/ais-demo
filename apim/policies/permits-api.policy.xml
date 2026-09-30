@@ -2,7 +2,7 @@
   Permits API — inbound governance policy (Demo Track steps A4, A6, A14).
 
   Applied on every call to POST /permits:
-    • validate-jwt          — authenticate the caller against Microsoft Entra
+    • validate-azure-ad-token — authenticate the caller against Microsoft Entra
     • rate-limit-by-key     — throttle per subscription (per-consumer limits)
     • set correlation ID    — stamp X-Correlation-Id that flows end to end
     • set-backend-service   — route to the Logic App / backend
@@ -11,17 +11,16 @@
 <policies>
   <inbound>
     <base />
-    <!-- Authenticate: reject invalid/expired tokens at the door (401). -->
-    <validate-jwt header-name="Authorization" failed-validation-httpcode="401"
-                  failed-validation-error-message="Unauthorized. Valid Entra token required.">
-      <openid-config url="https://login.microsoftonline.com/{{tenant-id}}/v2.0/.well-known/openid-configuration" />
+    <!-- Authenticate: reject missing/invalid/expired Microsoft Entra tokens at the door (401).
+         validate-azure-ad-token checks the Entra issuer and signing keys for the tenant
+         (v1 and v2 tokens) — no OpenID configuration URL to maintain. -->
+    <validate-azure-ad-token tenant-id="{{tenant-id}}" header-name="Authorization"
+                             failed-validation-httpcode="401"
+                             failed-validation-error-message="Unauthorized. Valid Microsoft Entra token required.">
       <audiences>
         <audience>api://ais-demo-permits</audience>
       </audiences>
-      <issuers>
-        <issuer>https://sts.windows.net/{{tenant-id}}/</issuer>
-      </issuers>
-    </validate-jwt>
+    </validate-azure-ad-token>
 
     <!-- Throttle per subscription key: 60 calls / minute (429 + Retry-After). -->
     <rate-limit-by-key calls="60" renewal-period="60"

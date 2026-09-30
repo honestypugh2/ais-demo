@@ -1,6 +1,7 @@
 """Application configuration loaded from environment / .env."""
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -43,10 +44,13 @@ class Settings(BaseSettings):
     docintel_endpoint: str = Field(default="", alias="DOCINTEL_ENDPOINT")
     docintel_model: str = Field(default="prebuilt-layout", alias="DOCINTEL_MODEL")
 
-    # ── Azure OpenAI via APIM AI gateway ────────────────────────────────────
+    # ── Azure OpenAI v1 API via the APIM AI gateway ─────────────────────────
     aoai_via_apim_base: str = Field(default="", alias="AOAI_VIA_APIM_BASE")
-    aoai_deployment: str = Field(default="gpt-4o-mini", alias="AOAI_DEPLOYMENT")
-    aoai_api_version: str = Field(default="2024-10-21", alias="AOAI_API_VERSION")
+    aoai_deployment: str = Field(default="gpt-5.4-mini", alias="AOAI_DEPLOYMENT")
+    aoai_reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"] = (
+        Field(default="low", alias="AOAI_REASONING_EFFORT")
+    )
+    aoai_max_output_tokens: int = Field(default=2000, alias="AOAI_MAX_OUTPUT_TOKENS")
 
     # ── Event Grid ──────────────────────────────────────────────────────────
     eventgrid_endpoint: str = Field(default="", alias="EVENTGRID_ENDPOINT")

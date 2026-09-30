@@ -5,8 +5,6 @@ notification, analytics/audit) can react without the permit flow knowing who is
 listening. In simulated mode the event is recorded in memory.
 """
 
-from __future__ import annotations
-
 from ais_demo.config import get_settings
 from ais_demo.core.logging import get_logger
 from ais_demo.schemas import PermitEvent

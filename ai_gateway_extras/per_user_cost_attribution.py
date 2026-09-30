@@ -13,11 +13,11 @@ Run:
     uv run python ai_gateway_extras/per_user_cost_attribution.py
 """
 
-from __future__ import annotations
-
 import os
 
 from dotenv import load_dotenv
+
+from ais_demo.integrations.ai_gateway import gateway_client
 
 # Adjust to your model's pricing for a realistic chargeback figure.
 PRICE_PER_1K_TOKENS_USD = 0.0006
@@ -33,19 +33,14 @@ PROMPTS = [
 ]
 
 
-def _call(base: str, key: str, deployment: str, api_version: str, user_id: str, prompt: str):
-    from openai import AzureOpenAI
-
-    client = AzureOpenAI(
-        azure_endpoint=base,
-        api_key=key,
-        api_version=api_version,
-        default_headers={"x-user-id": user_id},  # attribution dimension (proxy-stamped)
-    )
-    resp = client.chat.completions.create(
+def _call(base: str, key: str, deployment: str, user_id: str, prompt: str) -> int:
+    # x-user-id is the attribution dimension (stamped by a trusted proxy).
+    client = gateway_client(base, key, headers={"x-user-id": user_id})
+    resp = client.responses.create(
         model=deployment,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.0,
+        input=prompt,
+        reasoning={"effort": "low"},
+        store=False,
     )
     return resp.usage.total_tokens if resp.usage else 0
 
@@ -54,8 +49,7 @@ def main() -> None:
     load_dotenv()
     base = os.environ.get("AOAI_VIA_APIM_BASE")
     key = os.environ.get("APIM_SUBSCRIPTION_KEY")
-    deployment = os.environ.get("AOAI_DEPLOYMENT", "gpt-4o-mini")
-    api_version = os.environ.get("AOAI_API_VERSION", "2024-10-21")
+    deployment = os.environ.get("AOAI_DEPLOYMENT", "gpt-5.4-mini")
 
     if not base or not key:
         print("Set AOAI_VIA_APIM_BASE and APIM_SUBSCRIPTION_KEY in .env first.")
@@ -63,7 +57,7 @@ def main() -> None:
 
     print(f"{'user':<24}{'team':<14}{'tokens':>8}{'cost_usd':>12}")
     for (user_id, team), prompt in zip(SAMPLE_USERS, PROMPTS, strict=False):
-        tokens = _call(base, key, deployment, api_version, user_id, prompt)
+        tokens = _call(base, key, deployment, user_id, prompt)
         cost = round(tokens / 1000.0 * PRICE_PER_1K_TOKENS_USD, 6)
         print(f"{user_id:<24}{team:<14}{tokens:>8}{cost:>12}")
 

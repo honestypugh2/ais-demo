@@ -1,0 +1,67 @@
+name: Deploy infrastructure
+
+# Provisions infra/main.bicep with the Azure Developer CLI using OpenID Connect
+# (federated credentials, no stored secrets). A what-if preview runs first; the
+# apply job waits on the protected environment's required reviewers.
+#
+# Configure repository/environment variables:
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID,
+#   AZURE_ENV_NAME, AZURE_LOCATION, AZURE_RESOURCE_GROUP
+# and a federated credential on the app registration for this repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub environment to deploy to
+        type: choice
+        options: [dev, test, prod]
+        default: dev
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  preview:
+    name: What-if preview
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}-preview
+    env:
+      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Azure/setup-azd@v2
+      - name: azd login (OIDC)
+        run: |
+          azd auth login \
+            --client-id "${{ vars.AZURE_CLIENT_ID }}" \
+            --federated-credential-provider github \
+            --tenant-id "${{ vars.AZURE_TENANT_ID }}"
+      - name: What-if
+        run: azd provision --preview --no-prompt
+
+  provision:
+    name: Provision
+    needs: preview
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Azure/setup-azd@v2
+      - name: azd login (OIDC)
+        run: |
+          azd auth login \
+            --client-id "${{ vars.AZURE_CLIENT_ID }}" \
+            --federated-credential-provider github \
+            --tenant-id "${{ vars.AZURE_TENANT_ID }}"
+      - name: Provision
+        run: azd provision --no-prompt

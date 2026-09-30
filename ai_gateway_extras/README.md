@@ -10,10 +10,9 @@ variables as the main demo (see `.env.example`):
 
 | Variable | Purpose |
 | --- | --- |
-| `AOAI_VIA_APIM_BASE` | APIM gateway base for the model API (e.g. `https://<apim>.azure-api.net/openai`) |
-| `APIM_SUBSCRIPTION_KEY` | APIM subscription key (per-consumer) |
-| `AOAI_DEPLOYMENT` | Chat model deployment name (`gpt-4o-mini`) |
-| `AOAI_API_VERSION` | Azure OpenAI API version |
+| `AOAI_VIA_APIM_BASE` | APIM gateway base for the model API (e.g. `https://<apim>.azure-api.net/openai`); clients call the Azure OpenAI **v1 API** at `/openai/v1/` |
+| `APIM_SUBSCRIPTION_KEY` | APIM subscription key (per-consumer), sent in the `api-key` header |
+| `AOAI_DEPLOYMENT` | Model deployment name (`gpt-5.4-mini`) |
 
 ## Scripts
 
@@ -29,7 +28,7 @@ variables as the main demo (see `.env.example`):
 
 The FinOps scripts attribute cost at request time; these queries are the
 aggregate, dashboard-friendly view. Both read the metric emitted by
-`azure-openai-emit-token-metric` (namespace `ais-demo-ai-gateway`, dimensions
+`llm-emit-token-metric` (namespace `ais-demo-ai-gateway`, dimensions
 `Subscription` + `Department`). Run them in **Application Insights › Logs**.
 
 | File | What it shows |

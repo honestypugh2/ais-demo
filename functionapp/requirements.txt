@@ -1,5 +1,9 @@
-# Azure Functions host dependencies.
+# Azure Functions host dependencies (Python 3.14, v2 programming model).
+# azure-functions 2.x requires Python >= 3.13.
+# Listing azure-functions-runtime without a pin keeps the Python 3.13+ worker on
+# the latest runtime release (see the Azure Functions Python developer guide).
 # The shared application package (ais-demo) is installed from the repo root:
 #   pip install -e ..
-azure-functions~=1.21
+azure-functions>=2.3.0,<3
+azure-functions-runtime
 -e ..

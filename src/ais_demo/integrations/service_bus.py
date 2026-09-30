@@ -6,8 +6,6 @@ messages. In live mode it uses ``azure-servicebus`` with
 simulated mode an in-memory queue stands in for the broker.
 """
 
-from __future__ import annotations
-
 import json
 from collections import deque
 from dataclasses import dataclass, field

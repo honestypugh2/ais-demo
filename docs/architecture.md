@@ -14,13 +14,13 @@ generic — swap the schemas and `USE_CASE_PROFILE` to fit any intake scenario.
 
 API Management governs **both** the public API and the model API:
 
-![Two governed surfaces: the Permits API (/permits) and the Azure OpenAI API (/openai) with token-limit, token-metric, and managed-identity policies; the Function's compliance call routes back through the gateway](images/apim-ai-gateway.svg)
+![Two governed surfaces: the Permits API (/permits) and the Azure OpenAI v1 API (/openai/v1) with content-safety, token-limit, token-metric, and managed-identity policies; the Function's compliance call routes back through the gateway](images/apim-ai-gateway.svg)
 
 <sub>Rendered from a draw.io source kept locally (not committed).</sub>
 
 The Function's compliance-scoring call (step B4) routes **back through** the
-APIM Azure OpenAI surface, so `azure-openai-token-limit` and
-`azure-openai-emit-token-metric` apply to every model call — that is the
+APIM Azure OpenAI v1 surface (`/openai/v1/responses`), so `llm-content-safety`,
+`llm-token-limit`, and `llm-emit-token-metric` apply to every model call — that is the
 per-team AI chargeback signal.
 
 ## What the demo proves
@@ -28,8 +28,8 @@ per-team AI chargeback signal.
 | Capability | Where | Demo Track step |
 | --- | --- | --- |
 | API discovery, reuse, and catalog governance | API Center | A2 |
-| Governed, secured APIs (Entra JWT + rate limiting) | API Management | A4, A6, A14 / B1 |
-| AI-gateway cost control (token limits + metrics) | API Management | A5 / B4 |
+| Governed, secured APIs (Entra token validation + rate limiting) | API Management | A4, A6, A14 / B1 |
+| AI-gateway cost and safety control (content safety, token limits + quotas, metrics) | API Management | A5 / B4 |
 | Reliable async messaging + dead-letter | Service Bus | A8, A15 / B2, B7 |
 | AI extraction + validation + compliance score | Document Intelligence + AOAI | A9, A10 / B3, B4 |
 | Event-driven fan-out (decoupled subscribers) | Event Grid | A12 / B6 |
@@ -39,8 +39,10 @@ per-team AI chargeback signal.
 
 A single correlation ID is created at API Management and propagated through the
 Logic App, Service Bus message properties, the Function, the CRM write, and the
-Event Grid event. In Application Insights it renders as one end-to-end
-transaction; from Python the same trace is returned by a Kusto query
+Event Grid event. APIM uses W3C trace context, and both Python hosts export
+OpenTelemetry (every log record carries `correlationId` as a custom dimension),
+so in Application Insights it renders as one end-to-end transaction; from
+Python the same trace is returned by a Kusto query
 (`GET /api/trace/{correlationId}` or step B8).
 
 ## Path to production (APIM landing zone)

@@ -1,13 +1,14 @@
 """Document Intelligence extraction (Demo Track step B3).
 
 Extracts structured fields from a submitted permit packet. In live mode it uses
-``azure-ai-documentintelligence`` with the ``prebuilt-layout`` model; in
-simulated mode it returns deterministic synthetic fields.
+``azure-ai-documentintelligence`` (v4.0, API 2024-11-30) with the
+``prebuilt-layout`` model and the ``keyValuePairs`` add-on feature — layout only
+returns key-value pairs when that feature is requested. In simulated mode it
+returns deterministic synthetic fields.
 """
 
-from __future__ import annotations
-
 from ais_demo.config import get_settings
+from ais_demo.config.settings import Settings
 from ais_demo.core.logging import get_logger
 from ais_demo.schemas import ExtractedPermit
 
@@ -36,9 +37,12 @@ def _extract_simulated(permit: dict) -> ExtractedPermit:
     )
 
 
-def _extract_live(permit: dict, settings) -> ExtractedPermit:
+def _extract_live(permit: dict, settings: Settings) -> ExtractedPermit:
     from azure.ai.documentintelligence import DocumentIntelligenceClient
-    from azure.ai.documentintelligence.models import AnalyzeDocumentRequest
+    from azure.ai.documentintelligence.models import (
+        AnalyzeDocumentRequest,
+        DocumentAnalysisFeature,
+    )
     from azure.identity import DefaultAzureCredential
 
     logger.info("Document Intelligence analyzing document with %s", settings.docintel_model)
@@ -48,6 +52,7 @@ def _extract_live(permit: dict, settings) -> ExtractedPermit:
     poller = client.begin_analyze_document(
         settings.docintel_model,
         AnalyzeDocumentRequest(url_source=permit["documentUrl"]),
+        features=[DocumentAnalysisFeature.KEY_VALUE_PAIRS],
     )
     result = poller.result()
 

@@ -25,6 +25,14 @@
     <!-- Capture the caller's permit payload before issuing the send-request. -->
     <set-variable name="permitBody" value="@(context.Request.Body.As<string>(preserveContent: true))" />
 
+    <!-- MessageId = parcel number (falls back to the correlation ID) so Service Bus
+         duplicate detection drops a resubmitted parcel within the detection window. -->
+    <set-variable name="messageId" value="@{
+        var match = System.Text.RegularExpressions.Regex.Match(
+            (string)context.Variables["permitBody"], "\"parcel\"\\s*:\\s*\"([^\"]+)\"");
+        return match.Success ? match.Groups[1].Value : (string)context.Variables["correlationId"];
+    }" />
+
     <!-- Acquire a managed-identity token for Service Bus into a variable. -->
     <authentication-managed-identity resource="https://servicebus.azure.net"
                                      output-token-variable-name="sbtoken" />
@@ -42,7 +50,7 @@
       <set-header name="BrokerProperties" exists-action="override">
         <value>@(new Newtonsoft.Json.Linq.JObject(
                   new Newtonsoft.Json.Linq.JProperty("CorrelationId", (string)context.Variables["correlationId"]),
-                  new Newtonsoft.Json.Linq.JProperty("MessageId", Guid.NewGuid().ToString())
+                  new Newtonsoft.Json.Linq.JProperty("MessageId", (string)context.Variables["messageId"])
                 ).ToString(Newtonsoft.Json.Formatting.None))</value>
       </set-header>
       <set-body>@((string)context.Variables["permitBody"])</set-body>

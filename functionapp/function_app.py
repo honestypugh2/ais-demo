@@ -6,8 +6,6 @@ Reuses the shared orchestrator in ``src/ais_demo``. Each message on the
 the configured max delivery count.
 """
 
-from __future__ import annotations
-
 import json
 import logging
 

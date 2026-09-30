@@ -5,9 +5,7 @@ bearer token and a subscription key. Returns the HTTP status and the
 correlation ID stamped by the APIM policy.
 """
 
-from __future__ import annotations
-
-import httpx
+import httpx2
 
 from ais_demo.config import get_settings
 from ais_demo.core.correlation import CORRELATION_HEADER, new_correlation_id
@@ -39,7 +37,7 @@ def submit_permit(permit: dict) -> tuple[int, str]:
 
     token = acquire_token(settings)
     url = f"{settings.apim_base}{settings.permits_api_path}"
-    resp = httpx.post(
+    resp = httpx2.post(
         url,
         headers={
             "Authorization": f"Bearer {token}",

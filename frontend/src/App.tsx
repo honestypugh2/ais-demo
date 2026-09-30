@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Info, X } from 'lucide-react';
+import { CloseIcon, InfoIcon } from './icons';
 import { getHealth, getTrace, processQueue, submitPermit } from './api';
 import { getTraceServiceDetail } from './traceServiceDetails';
 import type { HealthResponse, ProcessResult, TraceResponse } from './types';
@@ -159,7 +159,7 @@ export default function App() {
                             title="Explain this service"
                             onClick={() => setSelectedTraceRow(selectedTraceRow === i ? null : i)}
                           >
-                            <Info size={17} aria-hidden="true" />
+                            <InfoIcon size={17} />
                           </button>
                         </td>
                       </tr>
@@ -181,7 +181,7 @@ export default function App() {
                       title="Close explanation"
                       onClick={() => setSelectedTraceRow(null)}
                     >
-                      <X size={17} aria-hidden="true" />
+                      <CloseIcon size={17} />
                     </button>
                   </div>
                   <dl className="trace-explanation-grid">
