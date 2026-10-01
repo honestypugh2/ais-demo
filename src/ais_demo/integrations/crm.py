@@ -19,7 +19,10 @@ _RECORDS: dict[str, dict] = {}
 
 
 def create_permit_record(
-    extracted: ExtractedPermit, compliance: ComplianceResult, correlation_id: str
+    extracted: ExtractedPermit,
+    compliance: ComplianceResult,
+    correlation_id: str,
+    status: str = "IntakeReview",
 ) -> str:
     """Create a CRM permit record; return the new permit ID."""
     settings = get_settings()
@@ -27,7 +30,7 @@ def create_permit_record(
         **extracted.model_dump(by_alias=True),
         "correlationId": correlation_id,
         "complianceScore": compliance.score,
-        "status": "IntakeReview",
+        "status": status,
     }
 
     if settings.simulated_mode or not settings.crm_base:

@@ -39,7 +39,7 @@
                                      output-token-variable-name="sbtoken" />
 
     <!-- Enqueue the permit onto the Service Bus queue via its REST endpoint. -->
-    <send-request mode="new" response-variable-name="sbresponse" timeout="20" ignore-error="false">
+    <send-request mode="new" response-variable-name="sbresponse" timeout="20" ignore-error="true">
       <set-url>https://{{servicebus-namespace}}.servicebus.windows.net/{{permits-queue}}/messages</set-url>
       <set-method>POST</set-method>
       <set-header name="Authorization" exists-action="override">
@@ -57,9 +57,11 @@
       <set-body>@((string)context.Variables["permitBody"])</set-body>
     </send-request>
 
-    <!-- 202 only means something if the message is durably on the queue. -->
+    <!-- 202 only means something if the message is durably on the queue. With
+         ignore-error="true", a connection failure or timeout leaves sbresponse null,
+         so it also gets the 503 instead of a generic gateway error. -->
     <choose>
-      <when condition="@(((IResponse)context.Variables["sbresponse"]).StatusCode != 201)">
+      <when condition="@(context.Variables.GetValueOrDefault<IResponse>("sbresponse") == null || context.Variables.GetValueOrDefault<IResponse>("sbresponse").StatusCode != 201)">
         <return-response>
           <set-status code="503" reason="Service Unavailable" />
           <set-header name="X-Correlation-Id" exists-action="override">

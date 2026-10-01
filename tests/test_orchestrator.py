@@ -38,3 +38,14 @@ def test_valid_message_is_processed():
     assert processed == 1
     assert seen[0]["type"] == "Building"
     assert service_bus.dead_letter_count() == 0
+
+
+def test_case_record_carries_the_routed_status(monkeypatch):
+    from ais_demo.config import get_settings
+    from ais_demo.integrations import crm
+
+    monkeypatch.setattr(get_settings(), "compliance_threshold", 101)
+    result = process_permit({"name": "Jordan Lee", "type": "Building"}, correlation_id="cid-4")
+
+    assert result.status == "NeedsAttention"
+    assert crm.get_record(result.permit_id)["status"] == "NeedsAttention"

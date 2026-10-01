@@ -73,7 +73,7 @@ architectures — see [production-path.md](production-path.md).
 ├── src/ais_demo/            # Shared application package (orchestrator + integrations)
 │   ├── api/                 #   FastAPI host (governed backend)
 │   ├── integrations/        #   APIM, Service Bus, Document Intelligence, AI gateway, Event Grid, CRM, Monitor
-│   ├── orchestrator.py      #   Function/AI-agent core: extract → validate → CRM → event
+│   ├── orchestrator.py      #   Function core: extract → score → CRM record → event
 │   ├── schemas/             #   Pydantic models
 │   ├── core/                #   correlation, logging, telemetry (OpenTelemetry), errors
 │   ├── config/              #   pydantic-settings

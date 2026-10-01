@@ -4,9 +4,10 @@ These policies implement the governance shown in the demo (Demo Track Part A,
 steps A4–A6, A14 and the AI-gateway steps A5 / B4).
 [infra/modules/apim.bicep](../../infra/modules/apim.bicep) deploys
 `aoai-api.policy.xml`, `permits-api.direct.xml`, and `permits-api.logicapp.xml`
-together with the named values and backends below.
+together with the named values and the model and content-safety backends below.
 [permits-api.policy.xml](permits-api.policy.xml) is the Entra-protected variant
-(Demo Track A14); apply it to the Permits API when you have an app registration.
+(Demo Track A14); apply it to the Permits API when you have an app registration
+and have registered the `permit-intake-logicapp` backend (Bicep doesn't create it).
 Adjust limits and thresholds for your tenant.
 
 | File | Applies to | Demonstrates |
@@ -29,15 +30,16 @@ Adjust limits and thresholds for your tenant.
 
 | Backend id | Target |
 | --- | --- |
-| `permit-intake-logicapp` | The Logic App workflow trigger URL |
+| `permit-intake-logicapp` | The Logic App workflow trigger URL — only for the Entra variant; not deployed by Bicep |
 | `foundry-models-backend` | `https://<foundry>.openai.azure.com/openai` (Azure OpenAI v1 API; managed identity) |
 | `content-safety-backend` | `https://<foundry>.cognitiveservices.azure.com` (managed identity, resource `https://cognitiveservices.azure.com`) |
 
 ## How the two surfaces compose
 
 ```
-Consumer ──▶ APIM  ├─ Permits API  (/permits)  ──▶ Logic App ──▶ Service Bus ──▶ Function
-                   └─ Azure OpenAI v1 (/openai/v1) ──▶ Foundry model (compliance scoring)
+Consumer ──▶ APIM  ├─ Permits API  (/permits)               ──▶ Service Bus ──▶ Function
+                   ├─ Permits API  (/permits-orchestrated)  ──▶ Logic App ──▶ Service Bus
+                   └─ Azure OpenAI v1 (/openai/v1)          ──▶ Foundry model (compliance scoring)
 ```
 
 The Function's compliance-scoring call (step B4) goes **back through** the APIM
