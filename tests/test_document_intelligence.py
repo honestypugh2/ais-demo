@@ -24,7 +24,7 @@ class _FakeClient:
         requested = [str(getattr(f, "value", f)) for f in kwargs.get("features") or []]
         pairs = (
             [
-                _kv("Property Owner Name", "Jordan Lee"),
+                _kv("Property Owner Name", "[Applicant Name]"),
                 _kv("Service Address", "1200 Main St, Anytown"),
                 _kv("Lot/Block Number", "Lot 7 / Block 3"),
                 _kv("Service Type", "Building"),
@@ -54,13 +54,13 @@ def live_docintel(monkeypatch):
 
 def test_live_extraction_requests_key_value_pairs_and_maps_fields(live_docintel):
     extracted = document_intelligence.extract_fields(
-        {"name": "Jordan Lee", "type": "Building", "documentUrl": "https://example.invalid/p.pdf"}
+        {"name": "[Applicant Name]", "type": "Building", "documentUrl": "https://example.invalid/p.pdf"}
     )
 
     call = _FakeClient.calls[0]
     assert call["model_id"] == "prebuilt-layout"
     assert [str(getattr(f, "value", f)) for f in call["features"]] == ["keyValuePairs"]
-    assert extracted.applicant_name == "Jordan Lee"
+    assert extracted.applicant_name == "[Applicant Name]"
     assert extracted.service_address == "1200 Main St, Anytown"
     assert extracted.parcel_id == "Lot 7 / Block 3"
     assert extracted.signature_present is True

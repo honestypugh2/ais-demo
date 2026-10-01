@@ -113,7 +113,7 @@ apim/policies/    APIM AI-gateway + front-door policies (direct enqueue + Logic 
 infra/            Bicep IaC — every resource, APIM API/policy, Event Grid subscription, and role assignment
 integration/      Low-code artifacts: Logic App workflow + Event Grid subscriptions
 frontend/         React + TypeScript portal
-data/             Synthetic samples + demo prompts
+data/             Synthetic sample permit (placeholder applicant)
 scripts/          app (start/stop) · run_demo · publish_function · setup · seed helpers
 tests/            pytest suite (health, permits, orchestrator, resilience)
 docs/             architecture · Demo Track · deployment · production path

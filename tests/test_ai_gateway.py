@@ -82,7 +82,7 @@ def test_live_scoring_uses_responses_api_with_structured_output(live_settings, m
         )
 
     monkeypatch.setattr(ai_gateway, "gateway_client", fake_client)
-    result = ai_gateway.score_compliance(ExtractedPermit(applicantName="Jordan Lee"))
+    result = ai_gateway.score_compliance(ExtractedPermit(applicantName="[Applicant Name]"))
 
     assert result.score == 75
     assert result.missing == ["signature"]

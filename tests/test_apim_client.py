@@ -38,7 +38,7 @@ def test_submits_to_deployed_path_with_subscription_key_only(live_apim):
     seen: dict = {}
     live_apim.setattr(apim_client.httpx2, "post", _fake_post(seen))
 
-    status, cid = apim_client.submit_permit({"name": "Jordan Lee", "type": "Building"})
+    status, cid = apim_client.submit_permit({"name": "[Applicant Name]", "type": "Building"})
 
     assert (status, cid) == (202, "cid-1")
     assert seen["url"] == "https://apim.example.test/permits"
@@ -54,6 +54,6 @@ def test_adds_entra_bearer_token_when_client_credentials_are_set(live_apim):
     live_apim.setattr(apim_client.httpx2, "post", _fake_post(seen))
     live_apim.setattr(apim_client, "acquire_token", lambda settings: "tok")
 
-    apim_client.submit_permit({"name": "Jordan Lee", "type": "Building"})
+    apim_client.submit_permit({"name": "[Applicant Name]", "type": "Building"})
 
     assert seen["headers"]["Authorization"] == "Bearer tok"

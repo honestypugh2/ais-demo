@@ -6,7 +6,7 @@ import type { HealthResponse, ProcessResult, TraceResponse } from './types';
 
 export default function App() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [name, setName] = useState('Jordan Lee');
+  const [name, setName] = useState('[Applicant Name]');
   const [type, setType] = useState('Building');
   const [parcel, setParcel] = useState('AIS-2026-00417');
   const [correlationId, setCorrelationId] = useState<string>('');

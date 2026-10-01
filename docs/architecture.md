@@ -83,7 +83,7 @@ architectures — see [production-path.md](production-path.md).
 ├── infra/                   # Bicep IaC: every resource, APIM API/policy, subscription, and role assignment
 ├── integration/             # Low-code artifacts: Logic App workflow + Event Grid subscriptions
 ├── frontend/                # React + TypeScript portal
-├── data/                    # Synthetic samples + demo prompts
+├── data/                    # Synthetic sample permit (placeholder applicant)
 ├── scripts/                 # Setup / run / seed helpers
 ├── tests/                   # pytest suite
 └── docs/                    # This document + Demo Track + deployment guide

@@ -17,11 +17,11 @@ from ais_demo.schemas import PermitRequest
 logger = get_logger(__name__)
 
 SAMPLE_PERMIT = {
-    "name": "Jordan Lee",
+    "name": "[Applicant Name]",
     "type": "Building",
     "parcel": "AIS-2026-00417",
     "documentUrl": "https://example.invalid/permit_packet_00417.pdf",
-    "applicantEmail": "jordan@example.com",
+    "applicantEmail": "[Applicant Email]",
 }
 
 POISON_PERMIT = {"name": "No Type", "parcel": "AIS-2026-BAD"}  # missing 'type'

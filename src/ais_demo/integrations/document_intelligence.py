@@ -29,7 +29,7 @@ def extract_fields(permit: dict) -> ExtractedPermit:
 def _extract_simulated(permit: dict) -> ExtractedPermit:
     logger.info("Document Intelligence (simulated) extracting fields")
     return ExtractedPermit(
-        applicantName=permit.get("name", "Jordan Lee"),
+        applicantName=permit.get("name", "[Applicant Name]"),
         serviceAddress="1200 Main St, Anytown",
         parcelId=permit.get("parcel", "Lot 7 / Block 3"),
         serviceType=permit.get("type", "Building"),
