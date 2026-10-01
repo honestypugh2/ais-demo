@@ -23,11 +23,13 @@ and the correlated trace across every Azure service.
 
 | Submit | Result + end-to-end trace |
 | --- | --- |
-| ![Permit Intake Portal — submit form](docs/images/ais_demo_main_07172026.png) | ![Permit Intake Portal — processing result and end-to-end trace](docs/images/ais_demo_permitsubmit_07172026.png) |
+| ![Permit Intake Portal — submit form](docs/images/ais_demo_main_10012026.png) | ![Permit Intake Portal — processing result and end-to-end trace](docs/images/ais_demo_permitsubmit_10012026.png) |
 
 *Left: submit a permit. Right: the processing result (permit ID, `IntakeReview`
 status, 100/100 compliance, event published) and the correlated hop-by-hop trace
-(APIM → Logic App → Service Bus → Function → Event Grid).*
+(APIM → Logic App → Service Bus → Function → Document Intelligence → AI gateway →
+case record → Event Grid). The info button on each row explains what that service
+does in the flow. Screenshots are from simulated mode.*
 
 ## What it demonstrates
 
