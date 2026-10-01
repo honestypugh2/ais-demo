@@ -111,8 +111,8 @@ For production, add:
 - **SLO/SLI** — define availability + latency SLOs; track error budgets.
 - **Tracing** — already on: OpenTelemetry from the Function host
   (`telemetryMode: OpenTelemetry`) and the FastAPI host (Azure Monitor distro)
-  into Application Insights; APIM logs gateway and LLM token usage to Log
-  Analytics. Add an end-to-end sampling policy.
+  into Application Insights; APIM sends gateway logs to Log Analytics and
+  per-team token usage as a custom metric. Add an end-to-end sampling policy.
 - **Cost telemetry** — per-user/per-team FinOps via the AI gateway (see
   [ai_gateway_extras/per_user_cost_attribution.py](../ai_gateway_extras/per_user_cost_attribution.py)).
   Reusable dashboard queries:
@@ -209,8 +209,10 @@ a branch or behind a parameter, and don't present them as GA:
 | Service Bus SDK-type bindings for Python Functions | Receive `ServiceBusReceivedMessage` and settle messages explicitly | [Service Bus trigger](https://learn.microsoft.com/azure/azure-functions/functions-bindings-service-bus-trigger) |
 | Logic Apps Automation (SaaS) | Managed, natural-language-authored automation as an alternative to the Consumption workflow | [What's new in Azure Logic Apps at Build 2026](https://techcommunity.microsoft.com/blog/integrationsonazureblog/whats-new-in-azure-logic-apps-at-microsoft-build-2026/4524685) |
 
-LLM prompt/completion message logging (`ApiManagementGatewayLlmLog`) is GA but
-off by default in this repo — enable it per API only after agreeing retention
+Per-request LLM logs (`ApiManagementGatewayLlmLog`: tokens, model, and
+optionally prompts and completions) are off in this repo. The diagnostic
+setting already routes the category to Log Analytics; turn on **Log LLM
+messages** on the API's Azure Monitor diagnostic only after agreeing retention
 and privacy rules. See [Log token usage, prompts, and completions](https://learn.microsoft.com/azure/api-management/api-management-howto-llm-logs).
 
 ## Production readiness checklist

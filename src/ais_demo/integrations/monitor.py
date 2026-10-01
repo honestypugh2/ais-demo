@@ -1,8 +1,9 @@
 """End-to-end trace query (Demo Track step B8).
 
-Runs a Kusto query against the Log Analytics workspace for a correlation ID and
-returns the whole journey — APIM request, Logic App send, the function's
-Document Intelligence and CRM calls, and the Event Grid publish. In simulated
+Runs a Kusto query against the Log Analytics workspace (workspace-based
+Application Insights tables) for a correlation ID and returns the whole journey —
+the API host's request and dependencies plus the Function's processing logs,
+which carry ``correlationId`` as a custom dimension or in the message text. In simulated
 mode a representative trace is returned so the demo works offline.
 """
 
@@ -14,11 +15,14 @@ from ais_demo.core.logging import get_logger
 logger = get_logger(__name__)
 
 KQL_TEMPLATE = """
-union requests, dependencies, traces, exceptions
-| where operation_Id == '{cid}'
-     or customDimensions['correlationId'] == '{cid}'
-| project timestamp, itemType, name, resultCode, duration, cloud_RoleName
-| order by timestamp asc
+union AppRequests, AppDependencies, AppTraces, AppExceptions
+| where OperationId == '{cid}'
+     or tostring(Properties['correlationId']) == '{cid}'
+     or Message has '{cid}'
+| project TimeGenerated, Type, Name = coalesce(Name, Message, OuterMessage),
+          ResultCode, DurationMs, AppRoleName
+| order by TimeGenerated asc
+| project-away TimeGenerated
 """
 
 

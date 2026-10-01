@@ -51,7 +51,7 @@ Insights) is provisioned by
 code with a bundled copy of the `ais_demo` package:
 
 ```bash
-func azure functionapp publish <function-app-name> --python --build remote
+../scripts/publish_function.sh <function-app-name>   # Core Tools 4.15+
 ```
 
 See the [deployment guide](../docs/deployment-guide.md) for the full RBAC +

@@ -5,6 +5,20 @@ import sys
 
 _CONFIGURED = False
 
+# Azure SDK HTTP request/response logging (including the telemetry exporter's
+# own uploads) is too chatty at INFO and would be re-exported as traces.
+NOISY_LOGGERS = (
+    "azure.core.pipeline.policies.http_logging_policy",
+    "azure.monitor.opentelemetry.exporter",
+    "azure.identity",
+)
+
+
+def quiet_azure_sdk_logging(level: int = logging.WARNING) -> None:
+    """Raise the level of chatty Azure SDK loggers."""
+    for name in NOISY_LOGGERS:
+        logging.getLogger(name).setLevel(level)
+
 
 def configure_logging(level: str = "INFO") -> None:
     """Configure root logging once with a concise, structured format.
@@ -31,6 +45,7 @@ def configure_logging(level: str = "INFO") -> None:
     root.handlers.clear()
     root.addHandler(handler)
     root.setLevel(level.upper())
+    quiet_azure_sdk_logging()
     _CONFIGURED = True
 
 

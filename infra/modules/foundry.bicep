@@ -57,6 +57,9 @@ resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2026-07-01
     }
     versionUpgradeOption: 'OnceNewDefaultVersionAvailable'
   }
+  // The account accepts one write at a time (for example during the in-place
+  // upgrade), so create the project first, then the deployment.
+  dependsOn: [ project ]
 }
 
 output id string = foundry.id

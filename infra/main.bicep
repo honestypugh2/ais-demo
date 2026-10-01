@@ -55,6 +55,9 @@ param notificationWebhookUrl string = ''
 @description('Microsoft Entra tenant used by validate-azure-ad-token policies.')
 param tenantId string = tenant().tenantId
 
+@description('Extra tags for the Function host storage account only (for example an organization policy exemption).')
+param functionStorageExtraTags object = {}
+
 @description('Tags applied to all resources.')
 param tags object = {
   workload: 'ais-demo'
@@ -191,6 +194,7 @@ module functionApp 'modules/functionapp.bicep' = {
     apimName: apim.?outputs.name ?? ''
     apimSubscriptionName: apim.?outputs.processorSubscriptionName ?? 'permit-processor'
     modelDeploymentName: foundry.outputs.deploymentName
+    storageExtraTags: functionStorageExtraTags
   }
 }
 

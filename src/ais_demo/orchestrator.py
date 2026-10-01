@@ -23,7 +23,12 @@ def process_permit(permit: dict, correlation_id: str) -> ProcessResult:
 
     # 2) Score policy compliance (AOAI via the APIM AI gateway).
     compliance = ai_gateway.score_compliance(extracted)
-    logger.info("compliance score=%s missing=%s", compliance.score, compliance.missing)
+    logger.info(
+        "compliance score=%s missing=%s correlationId=%s",
+        compliance.score,
+        compliance.missing,
+        correlation_id,
+    )
 
     # 3) Write the validated permit to CRM.
     permit_id = crm.create_permit_record(extracted, compliance, correlation_id)

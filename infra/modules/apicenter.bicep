@@ -1,7 +1,6 @@
 // Azure API Center — API inventory, discovery, and reuse, synchronized from
 // API Management. The API Management link (apiSources) is only available in the
-// 2024-06-01-preview API version; everything else uses the GA version. The
-// service is created on the Free plan (the default).
+// 2024-06-01-preview API version; everything else uses the GA version.
 param name string
 param location string
 param tags object
@@ -17,6 +16,9 @@ resource apiCenter 'Microsoft.ApiCenter/services@2024-03-01' = {
   name: name
   location: location
   tags: tags
+  // Required by the service although missing from the published type definition.
+  #disable-next-line BCP187
+  sku: { name: 'Free' }
   identity: { type: 'SystemAssigned' }
   properties: {}
 }

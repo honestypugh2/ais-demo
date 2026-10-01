@@ -3,7 +3,7 @@
 // Deploys the three demo APIs with their policies (from ../../apim/policies),
 // the named values and backends those policies use, the processor subscription
 // for the Function, Application Insights logging with managed identity + custom
-// metrics (token chargeback), and Azure Monitor gateway / LLM logs.
+// metrics (token chargeback), and Azure Monitor gateway logs.
 param name string
 param location string
 param tags object
@@ -144,9 +144,12 @@ resource appInsightsDiagnostic 'Microsoft.ApiManagement/service/diagnostics@2024
   }
 }
 
-// Gateway and generative-AI gateway logs (token usage per request) to Log
-// Analytics resource-specific tables (ApiManagementGatewayLogs,
-// ApiManagementGatewayLlmLog). Prompt/completion bodies are not logged.
+// Gateway logs to Log Analytics resource-specific tables
+// (ApiManagementGatewayLogs). The category group also covers the generative-AI
+// gateway log (ApiManagementGatewayLlmLog), which fills only after "Log LLM
+// messages" is enabled on an API's Azure Monitor diagnostic — off here, so no
+// prompts or completions are stored. Token usage per team comes from the
+// llm-emit-token-metric custom metric instead.
 resource gatewayLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: apim
   name: 'to-log-analytics'

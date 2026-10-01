@@ -18,6 +18,8 @@ param apimGatewayUrl string = ''
 param apimName string = ''
 param apimSubscriptionName string = 'permit-processor'
 param modelDeploymentName string
+@description('Extra tags for the host storage account only (for example an organization-specific policy exemption tag).')
+param storageExtraTags object = {}
 
 var storageName = toLower(replace('${name}st', '-', ''))
 var storageBlobDataOwnerRoleId = 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'
@@ -26,7 +28,7 @@ var deploymentContainer = 'deployments'
 resource storage 'Microsoft.Storage/storageAccounts@2026-04-01' = {
   name: length(storageName) > 24 ? substring(storageName, 0, 24) : storageName
   location: location
-  tags: tags
+  tags: union(tags, storageExtraTags)
   sku: { name: 'Standard_LRS' }
   kind: 'StorageV2'
   properties: {
@@ -34,6 +36,9 @@ resource storage 'Microsoft.Storage/storageAccounts@2026-04-01' = {
     allowBlobPublicAccess: false
     allowSharedKeyAccess: false
     defaultToOAuthAuthentication: true
+    // Flex Consumption without VNet integration reaches its host storage over
+    // the public endpoint (Entra auth only; shared keys are disabled).
+    publicNetworkAccess: 'Enabled'
   }
 }
 

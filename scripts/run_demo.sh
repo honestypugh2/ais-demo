@@ -127,18 +127,18 @@ show_trace() {
   while [ "$(date +%s)" -lt "$deadline" ]; do
     local rows
     rows=$(az monitor log-analytics query --subscription "$SUB" -w "$WID" --analytics-query \
-      "AppTraces | where TimeGenerated > ago(15m) | where Message has '$parcel' or Message has 'ProcessPermit' or Message has 'compliance' or Message has 'published' | project TimeGenerated, Message | order by TimeGenerated asc | take 15" \
+      "AppTraces | where TimeGenerated > ago(15m) | where Message has '$parcel' | project TimeGenerated, Message | order by TimeGenerated asc | take 15" \
       -o json 2>/dev/null || echo "[]")
     if printf '%s' "$rows" | python3 -c '
 import sys, json
 rows = json.load(sys.stdin)
-if any("published" in (r.get("Message") or "") for r in rows):
+if any("Processed permit" in (r.get("Message") or "") for r in rows):
     for r in rows:
         print("   %s  %s" % ((r.get("TimeGenerated") or "")[11:19], r.get("Message")))
     sys.exit(0)
 sys.exit(1)
 '; then
-      ok "End-to-end trace complete (PermitCreated published)."
+      ok "End-to-end trace complete (permit processed and PermitCreated published)."
       return
     fi
     sleep 6

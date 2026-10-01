@@ -50,7 +50,7 @@ portal steps:
 | `documentintelligence` | Document Intelligence (v4.0 API, local auth disabled) |
 | `foundry` | Microsoft Foundry resource (`AIServices`, local auth disabled) + `permit-intake` project + `gpt-5.4-mini` deployment; also the Content Safety backend |
 | `logicapp` | Consumption workflow loaded from [integration/logicapp/permit-intake-workflow.json](../integration/logicapp/permit-intake-workflow.json) |
-| `apim` | API Management: `aoai` (Azure OpenAI v1), `permits`, and `permits-orchestrated` APIs with the policies in [apim/policies](../apim/policies/); named values, backends (circuit breaker), the Function's `permit-processor` subscription, Application Insights logger (connection string + managed identity), custom metrics, and gateway/LLM logs to Log Analytics |
+| `apim` | API Management: `aoai` (Azure OpenAI v1), `permits`, and `permits-orchestrated` APIs with the policies in [apim/policies](../apim/policies/); named values, backends (circuit breaker), the Function's `permit-processor` subscription, Application Insights logger (connection string + managed identity), custom metrics (`azure.ai_gateway.client.token.usage`), and gateway logs to Log Analytics |
 | `apicenter` | API Center linked to API Management (API sources — preview API version) |
 | `functionapp` | Flex Consumption, **Python 3.14**, all connections via managed identity, OpenTelemetry to Application Insights |
 | `rbac` | Least-privilege data-plane roles for the Function identity |
@@ -110,8 +110,12 @@ approval gate.
 1. **Function App** — publish the Service Bus-triggered processor (Python 3.14):
    ```bash
    cd functionapp
-   func azure functionapp publish <your-func-name> --python --build remote
+   ./scripts/publish_function.sh <your-func-name>
    ```
+   The script stages `functionapp/` with a copy of `src/ais_demo` and pinned
+   requirements from `uv.lock`, then runs `func azure functionapp publish
+   --build remote`. Use Azure Functions Core Tools 4.15 or later — earlier
+   versions reject remote builds for Python 3.14 on Flex Consumption.
 2. **API Center portal** — optional; configure and present the developer
    catalog with the [API Center portal guide](api-center-portal.md).
 

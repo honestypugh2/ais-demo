@@ -12,7 +12,10 @@ import logging
 import azure.functions as func
 
 from ais_demo.core.correlation import new_correlation_id, set_correlation_id
+from ais_demo.core.logging import quiet_azure_sdk_logging
 from ais_demo.orchestrator import process_permit
+
+quiet_azure_sdk_logging()
 
 app = func.FunctionApp()
 
@@ -37,9 +40,13 @@ def process_permit_message(msg: func.ServiceBusMessage) -> None:
         raise ValueError("malformed permit packet")
 
     result = process_permit(body, correlation_id)
+    # The Functions log bridge exports only the message text, so the IDs that
+    # tie this run to the request (correlation ID, parcel) are in the message.
     logging.info(
-        "Processed permit %s status=%s score=%s",
+        "Processed permit %s parcel=%s status=%s score=%s correlationId=%s",
         result.permit_id,
+        body.get("parcel"),
         result.status,
         result.compliance.score,
+        correlation_id,
     )
