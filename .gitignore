@@ -40,10 +40,17 @@ azd-env/
 .DS_Store
 Thumbs.db
 
-# ── Source Demo Track (customer-specific; kept out of the repo) ───
-Bellevue_AIS_Demo_TalkTrack_Portal_and_Python.html
+# ── Customer talk tracks (kept out of the repo) ───
 *_TalkTrack_*.html
 .run/
 
 # ── draw.io sources (editable; committed renders live in docs/images/) ──
 docs/diagrams/
+
+blog
+
+# ── Presenter notes (local only) ──
+data/demo_questions.md
+
+# ── Environment-specific Bicep parameters ──
+infra/*.local.bicepparam

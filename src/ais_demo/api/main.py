@@ -1,7 +1,5 @@
 """FastAPI application factory for the AIS demo orchestrator."""
 
-from __future__ import annotations
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -18,6 +16,7 @@ from ais_demo.core.correlation import (
 )
 from ais_demo.core.errors import register_exception_handlers
 from ais_demo.core.logging import configure_logging
+from ais_demo.core.telemetry import configure_telemetry
 
 
 class CorrelationMiddleware(BaseHTTPMiddleware):
@@ -34,6 +33,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings.log_level)
+    configure_telemetry(settings.applicationinsights_connection_string)
 
     app = FastAPI(
         title="AIS Demo — Permit Intake API",

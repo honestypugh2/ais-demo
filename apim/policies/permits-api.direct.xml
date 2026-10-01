@@ -3,8 +3,9 @@
 
   POST /permits authenticates the caller (subscription key), stamps a correlation
   ID, and enqueues the permit packet directly onto the Service Bus queue using
-  APIM's managed identity (no connection string). Returns 202 Accepted so the
-  caller is not blocked while the ProcessPermit function handles the message.
+  APIM's managed identity (no connection string). Returns 202 Accepted only after
+  Service Bus confirms the enqueue (201), so 202 means "durably accepted" — not
+  "approved". If the enqueue fails, the caller gets 503 and nothing is queued.
 
   Demo Track steps: A2, A4, A6 (governed async submit) + A14 (rate limit → 429).
   Requires the APIM system-assigned identity to have "Azure Service Bus Data
@@ -25,12 +26,20 @@
     <!-- Capture the caller's permit payload before issuing the send-request. -->
     <set-variable name="permitBody" value="@(context.Request.Body.As<string>(preserveContent: true))" />
 
+    <!-- MessageId = parcel number (falls back to the correlation ID) so Service Bus
+         duplicate detection drops a resubmitted parcel within the detection window. -->
+    <set-variable name="messageId" value="@{
+        var match = System.Text.RegularExpressions.Regex.Match(
+            (string)context.Variables["permitBody"], "\"parcel\"\\s*:\\s*\"([^\"]+)\"");
+        return match.Success ? match.Groups[1].Value : (string)context.Variables["correlationId"];
+    }" />
+
     <!-- Acquire a managed-identity token for Service Bus into a variable. -->
     <authentication-managed-identity resource="https://servicebus.azure.net"
                                      output-token-variable-name="sbtoken" />
 
     <!-- Enqueue the permit onto the Service Bus queue via its REST endpoint. -->
-    <send-request mode="new" response-variable-name="sbresponse" timeout="20" ignore-error="false">
+    <send-request mode="new" response-variable-name="sbresponse" timeout="20" ignore-error="true">
       <set-url>https://{{servicebus-namespace}}.servicebus.windows.net/{{permits-queue}}/messages</set-url>
       <set-method>POST</set-method>
       <set-header name="Authorization" exists-action="override">
@@ -42,11 +51,32 @@
       <set-header name="BrokerProperties" exists-action="override">
         <value>@(new Newtonsoft.Json.Linq.JObject(
                   new Newtonsoft.Json.Linq.JProperty("CorrelationId", (string)context.Variables["correlationId"]),
-                  new Newtonsoft.Json.Linq.JProperty("MessageId", Guid.NewGuid().ToString())
+                  new Newtonsoft.Json.Linq.JProperty("MessageId", (string)context.Variables["messageId"])
                 ).ToString(Newtonsoft.Json.Formatting.None))</value>
       </set-header>
       <set-body>@((string)context.Variables["permitBody"])</set-body>
     </send-request>
+
+    <!-- 202 only means something if the message is durably on the queue. With
+         ignore-error="true", a connection failure or timeout leaves sbresponse null,
+         so it also gets the 503 instead of a generic gateway error. -->
+    <choose>
+      <when condition="@(context.Variables.GetValueOrDefault<IResponse>("sbresponse") == null || context.Variables.GetValueOrDefault<IResponse>("sbresponse").StatusCode != 201)">
+        <return-response>
+          <set-status code="503" reason="Service Unavailable" />
+          <set-header name="X-Correlation-Id" exists-action="override">
+            <value>@((string)context.Variables["correlationId"])</value>
+          </set-header>
+          <set-header name="Retry-After" exists-action="override">
+            <value>30</value>
+          </set-header>
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>@("{\"status\":\"not-accepted\",\"reason\":\"queue unavailable\",\"correlationId\":\"" + (string)context.Variables["correlationId"] + "\"}")</set-body>
+        </return-response>
+      </when>
+    </choose>
 
     <!-- Return 202 Accepted with the correlation ID (async accepted). -->
     <return-response>

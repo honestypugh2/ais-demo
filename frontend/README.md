@@ -1,11 +1,12 @@
 # `frontend/` — Permit Intake Portal (React + TypeScript)
 
 The demo **portal UI** — a stand-in for a public-facing permit portal. Built with
-React + TypeScript on Vite. It calls the governed backend (via APIM in the
+React 19 + TypeScript 7 on Vite 8 (Node.js 24 LTS). It has only two runtime
+dependencies (`react`, `react-dom`). It calls the governed backend (via APIM in the
 deployed flow, via the Vite dev proxy locally) and visualizes the whole journey:
 **submit → processing result → end-to-end trace**.
 
-![Permit Intake Portal — result and end-to-end trace](../docs/images/ais_demo_permitsubmit_07172026.png)
+![Permit Intake Portal — result and end-to-end trace](../docs/images/ais_demo_permitsubmit_10012026.png)
 
 ## What it shows
 
@@ -13,7 +14,7 @@ deployed flow, via the Vite dev proxy locally) and visualizes the whole journey:
 | --- | --- |
 | **Submit a permit** | Applicant / type / parcel form; returns the correlation ID. |
 | **Processing result** | Permit ID, status, compliance score (0–100), flags, event-published. |
-| **End-to-end trace** | The correlated hops (APIM → Logic App → Function → Event Grid) with durations. |
+| **End-to-end trace** | The correlated hops (APIM → Logic App → Function → AI gateway → Event Grid) with durations, plus an info button per hop that explains the service. |
 
 A status bar shows the live **mode** (simulated/live), version, and use-case profile.
 
@@ -27,6 +28,7 @@ frontend/
 └── src/
     ├── main.tsx          # React entry point
     ├── App.tsx           # the three-card portal + submit flow
+    ├── icons.tsx         # two inline SVG icons (no icon-library dependency)
     ├── api.ts            # API client (/api/health, /api/permits, /api/process, /api/trace)
     ├── types.ts          # shared TypeScript interfaces
     └── styles.css        # portal styling
@@ -34,7 +36,8 @@ frontend/
 
 ## Run
 
-The backend must be running on :8000 (the dev proxy forwards `/api` to it).
+Requires Node.js 24 LTS (`>=24.15.0`, see `engines` in `package.json`). The
+backend must be running on :8000 (the dev proxy forwards `/api` to it).
 
 ```bash
 # Easiest — start backend + this portal together:

@@ -3,25 +3,29 @@
 // bill. Pairs with per_user_cost_attribution.py (request-time attribution);
 // this query is the aggregate, dashboard-friendly view.
 //
-// Source: `azure-openai-emit-token-metric` (namespace "ais-demo-ai-gateway").
-// Run in: Application Insights › Logs (classic `customMetrics` schema).
+// Source: `llm-emit-token-metric` (namespace "ais-demo-ai-gateway"), metric
+// `azure.ai_gateway.client.token.usage`, token category in `gen_ai.token.type`.
+// Input = input_tokens (Responses) or prompt_tokens (Chat Completions);
+// output = output_tokens or completion_tokens. Reasoning tokens are already
+// included in output tokens.
+// Run in: Log Analytics (workspace-based Application Insights, `AppMetrics`).
 //
 // NOTE: rates below are illustrative. Replace with the price list for the model
 // deployment you front (see https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/).
 // ============================================================================
 
-let PromptRatePer1K     = 0.00015;   // USD per 1K prompt tokens (example)
-let CompletionRatePer1K = 0.00060;   // USD per 1K completion tokens (example)
-let LookbackDays        = 30d;
-customMetrics
-| where timestamp > ago(LookbackDays)
-| where name in ("Prompt Tokens", "Completion Tokens")
-| extend Department = tostring(customDimensions["Department"])
-| summarize Tokens = sum(valueSum) by Department, name
-| evaluate pivot(name, sum(Tokens))
-| extend PromptTokens     = coalesce(todouble(['Prompt Tokens']), 0.0),
-         CompletionTokens = coalesce(todouble(['Completion Tokens']), 0.0)
-| extend CostUSD = round(PromptTokens / 1000 * PromptRatePer1K
-                       + CompletionTokens / 1000 * CompletionRatePer1K, 4)
-| project Department, PromptTokens, CompletionTokens, CostUSD
+let InputRatePer1K  = 0.00015;   // USD per 1K input tokens (example)
+let OutputRatePer1K = 0.00060;   // USD per 1K output tokens (example)
+let LookbackDays    = 30d;
+AppMetrics
+| where TimeGenerated > ago(LookbackDays)
+| where Name == "azure.ai_gateway.client.token.usage"
+| extend TokenType  = tostring(Properties["gen_ai.token.type"]),
+         Department = tostring(Properties["Department"])
+| summarize InputTokens  = sumif(Sum, TokenType in ("input_tokens", "prompt_tokens")),
+            OutputTokens = sumif(Sum, TokenType in ("output_tokens", "completion_tokens"))
+            by Department
+| extend CostUSD = round(InputTokens / 1000 * InputRatePer1K
+                       + OutputTokens / 1000 * OutputRatePer1K, 4)
+| project Department, InputTokens, OutputTokens, CostUSD
 | order by CostUSD desc

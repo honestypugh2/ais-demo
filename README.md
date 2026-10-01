@@ -23,32 +23,34 @@ and the correlated trace across every Azure service.
 
 | Submit | Result + end-to-end trace |
 | --- | --- |
-| ![Permit Intake Portal — submit form](docs/images/ais_demo_main_07172026.png) | ![Permit Intake Portal — processing result and end-to-end trace](docs/images/ais_demo_permitsubmit_07172026.png) |
+| ![Permit Intake Portal — submit form](docs/images/ais_demo_main_10012026.png) | ![Permit Intake Portal — processing result and end-to-end trace](docs/images/ais_demo_permitsubmit_10012026.png) |
 
 *Left: submit a permit. Right: the processing result (permit ID, `IntakeReview`
 status, 100/100 compliance, event published) and the correlated hop-by-hop trace
-(APIM → Logic App → Service Bus → Function → Event Grid).*
+(APIM → Logic App → Service Bus → Function → Document Intelligence → AI gateway →
+case record → Event Grid). The info button on each row explains what that service
+does in the flow. Screenshots are from simulated mode.*
 
 ## What it demonstrates
 
 | Capability | Azure service |
 | --- | --- |
 | API discovery, reuse, and catalog governance | **Azure API Center** |
-| Governed, secured APIs (Entra JWT + rate limiting + correlation ID) | **API Management** |
-| AI-gateway cost control (token limits + per-team token metrics) | **API Management** (AI gateway) |
+| Governed, secured APIs (Entra token validation + rate limiting + correlation ID) | **API Management** |
+| AI-gateway safety and cost control (content safety + Prompt Shields, token limits + quotas, per-team token metrics, circuit breaker) | **API Management** (AI gateway) |
 | Low-code orchestration (validate → enrich → route) | **Logic Apps** |
 | Reliable async messaging with dead-lettering | **Service Bus** |
-| AI field extraction | **Azure AI Document Intelligence** |
-| AI policy-compliance scoring | **Azure OpenAI** (fronted by APIM) |
+| AI field extraction (layout + key-value pairs) | **Azure Document Intelligence** |
+| AI policy-compliance scoring (`gpt-5.4-mini`, Azure OpenAI v1 Responses API, structured output) | **Microsoft Foundry** (fronted by APIM) |
 | Event-driven fan-out (decoupled subscribers) | **Event Grid** |
 | Serverless processing | **Azure Functions** |
-| End-to-end distributed tracing | **Application Insights** |
+| End-to-end distributed tracing (OpenTelemetry) | **Application Insights** |
 
 ```
 Portal → API Management → Logic App → Service Bus → Function/AI agent → CRM → Event Grid → Notification
 ```
 
-![AIS demo architecture — governed, event-driven permit intake across API Management, Logic Apps, Service Bus, Functions, Document Intelligence, Azure OpenAI, Event Grid, and Application Insights](docs/images/architecture-overview.svg)
+![AIS demo architecture — governed, event-driven permit intake across API Management, Logic Apps, Service Bus, Functions, Document Intelligence, a Microsoft Foundry model, Event Grid, and Application Insights](docs/images/architecture-overview.svg)
 
 See [docs/architecture.md](docs/architecture.md) for diagrams and
 [docs/api-center-portal.md](docs/api-center-portal.md) for the API discovery and
@@ -57,13 +59,14 @@ not committed.)
 
 ## Tech stack
 
-- **Python 3.11+**, `src/` layout, managed with **uv**
+- **Python 3.14+**, `src/` layout, managed with **uv**
 - **FastAPI** orchestrator + **Azure Functions** host (Service Bus trigger) — both reuse `src/ais_demo`
 - Latest stable Azure SDKs: `azure-identity`, `azure-servicebus`,
   `azure-ai-documentintelligence`, `azure-eventgrid`,
-  `azure-monitor-query`, `openai`
-- **React 18 + TypeScript + Vite** portal
-- **Bicep** IaC · **pytest**, **ruff**, **mypy**
+  `azure-monitor-query`, `azure-monitor-opentelemetry`, and `openai` 3.x
+  (Azure OpenAI **v1 API** — no dated `api-version`), on `httpx2`
+- **React 19 + TypeScript 7 + Vite 8** portal (Node.js 24 LTS)
+- **Bicep** IaC (every resource, API, policy, and role assignment) · **pytest**, **ruff**, **mypy**
 - **Simulated mode** so the whole demo runs offline with no Azure credentials
 
 ## Quickstart (no Azure required)
@@ -107,11 +110,11 @@ src/ais_demo/     Shared package: orchestrator + integrations + FastAPI + Part B
 functionapp/      Azure Functions host (Service Bus trigger) — reuses src/ais_demo
 ai_gateway_extras/  AI-gateway feature demos: per-user cost attribution, model routing, gateway calls
 apim/policies/    APIM AI-gateway + front-door policies (direct enqueue + Logic App routing)
-infra/            Bicep IaC (Service Bus, Event Grid, Document Intelligence, AOAI, Functions, APIM, Logic App)
+infra/            Bicep IaC — every resource, APIM API/policy, Event Grid subscription, and role assignment
 integration/      Low-code artifacts: Logic App workflow + Event Grid subscriptions
 frontend/         React + TypeScript portal
-data/             Synthetic samples + demo prompts
-scripts/          app (start/stop) · run_demo · setup · seed helpers
+data/             Synthetic sample permit (placeholder applicant)
+scripts/          app (start/stop) · run_demo · publish_function · setup · seed helpers
 tests/            pytest suite (health, permits, orchestrator, resilience)
 docs/             architecture · Demo Track · deployment · production path
 ```
@@ -145,8 +148,10 @@ Grid) stays the same.
 
 ## Deploy to Azure
 
-See [docs/deployment-guide.md](docs/deployment-guide.md) — Bicep or `azd up`,
-plus the RBAC and switch-to-live steps.
+See [docs/deployment-guide.md](docs/deployment-guide.md) — one Bicep deployment
+(or `azd provision`) creates and wires the whole stack, including APIM APIs and
+policies, the Logic App workflow, Event Grid subscriptions, and managed-identity
+role assignments; then publish the Function code.
 
 For the full **path to production** (security, reliability, observability,
 evaluation, CI/CD) mapped to the Well-Architected Framework and Microsoft

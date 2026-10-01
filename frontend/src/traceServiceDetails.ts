@@ -19,6 +19,16 @@ export function getTraceServiceDetail(operation: string): TraceServiceDetail {
     };
   }
 
+  if (name.endsWith('/permits-in/messages')) {
+    return {
+      service: 'Azure Service Bus (enqueue from API Management)',
+      what: 'A durable enterprise message broker with retries, dead-lettering, and duplicate detection.',
+      how: 'API Management writes the permit to the permits-in queue with its managed identity, using the parcel as the message ID.',
+      why: 'HTTP 202 is returned only after Service Bus confirms the message (201), so accepted work is never lost.',
+      currentFunction: 'Durably accept the permit; a resubmitted parcel inside the detection window is dropped as a duplicate.',
+    };
+  }
+
   if (name === 'send permits-in') {
     return {
       service: 'Azure Logic Apps',
@@ -29,7 +39,7 @@ export function getTraceServiceDetail(operation: string): TraceServiceDetail {
     };
   }
 
-  if (name === 'servicebustrigger') {
+  if (name === 'servicebustrigger' || name === 'servicebusprocessor.processmessage') {
     return {
       service: 'Azure Service Bus and Azure Functions',
       what: 'Service Bus is a durable enterprise message broker; Functions provides event-driven serverless compute.',
@@ -41,35 +51,49 @@ export function getTraceServiceDetail(operation: string): TraceServiceDetail {
 
   if (name.includes('analyze prebuilt-layout')) {
     return {
-      service: 'Azure AI Document Intelligence',
+      service: 'Azure Document Intelligence',
       what: 'An AI service that extracts text, structure, and fields from documents.',
-      how: 'The processor uses the prebuilt layout model to extract applicant and permit fields from the submitted packet.',
+      how: 'The processor uses the prebuilt layout model with the key-value pairs add-on to extract applicant and permit fields from the submitted packet.',
       why: 'It replaces brittle document parsing with a managed model that supports varied layouts and formats.',
       currentFunction: 'Extract the structured permit fields used by validation and downstream systems.',
     };
   }
 
-  if (name.includes('score compliance')) {
+  if (name.includes('score compliance') || name.endsWith('/openai/v1/responses')) {
     return {
-      service: 'API Management AI gateway and Azure OpenAI',
-      what: 'Azure OpenAI provides the model; the API Management AI gateway adds centralized security, limits, metrics, and policy.',
-      how: 'The Function sends extracted fields through APIM to the model for a permit compliance score.',
-      why: 'Model access stays governed and observable, with token controls and per-team usage attribution in one gateway.',
-      currentFunction: 'Evaluate the extracted permit and return its compliance score, missing fields, and flags.',
+      service: 'API Management AI gateway and Microsoft Foundry',
+      what: 'A Foundry model (gpt-5.4-mini) served through the Azure OpenAI v1 API; the API Management AI gateway adds content safety, token limits, metrics, and managed-identity access.',
+      how: 'The Function sends extracted fields through APIM to the Responses API, which returns a structured compliance review.',
+      why: 'Model access stays governed and observable, with content safety, token controls, and per-team usage attribution in one gateway.',
+      currentFunction: 'Return an advisory compliance score, missing fields, and flags that route the permit to a human review state.',
+    };
+  }
+
+  if (name.includes('contentsafety')) {
+    return {
+      service: 'Azure AI Content Safety (via the AI gateway)',
+      what: 'A service that detects harmful content and prompt-injection attempts (Prompt Shields).',
+      how: 'The llm-content-safety policy checks every prompt before it reaches the model.',
+      why: 'Unsafe or adversarial prompts are blocked at the gateway with HTTP 403, before any model tokens are spent.',
+      currentFunction: 'Screen this scoring request; it passed, so the gateway forwarded it to the model.',
     };
   }
 
   if (name === 'create permit record') {
     return {
-      service: 'CRM integration',
+      service: 'Case-system adapter (CRM)',
       what: 'The system-of-record integration that stores the validated permit for case management.',
-      how: 'The processor writes the extracted fields, compliance outcome, and correlation ID to the CRM adapter.',
+      how: 'The processor writes the extracted fields, compliance outcome, and correlation ID through the adapter: an in-memory stub by default, or the HTTP endpoint set in CRM_BASE.',
       why: 'Operational teams need a durable business record after automated intake and validation complete.',
       currentFunction: 'Create the permit record and return the permit ID shown in the processing result.',
     };
   }
 
-  if (name.includes('publish permitcreated')) {
+  if (
+    name.includes('publish permitcreated') ||
+    name.endsWith('/api/events') ||
+    name.startsWith('eventgridpublisherclient')
+  ) {
     return {
       service: 'Azure Event Grid',
       what: 'A managed publish-subscribe event routing service for reactive, loosely coupled systems.',

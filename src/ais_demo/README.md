@@ -19,14 +19,15 @@ ais_demo/
 │   └── settings.py          # pydantic-settings loaded from environment / .env
 ├── core/
 │   ├── correlation.py       # correlation-id helpers (X-Correlation-Id end to end)
-│   ├── logging.py           # structured logging configuration
+│   ├── logging.py           # structured logging (correlationId on every record)
+│   ├── telemetry.py         # OpenTelemetry export to Application Insights
 │   └── errors.py            # application errors + FastAPI handlers
 ├── integrations/           # one adapter per Azure service (live + simulated)
 │   ├── apim_client.py       # calls the governed API surface (APIM front door)
 │   ├── service_bus.py       # enqueue permits onto the Service Bus queue
 │   ├── document_intelligence.py  # extract fields from the permit document
-│   ├── ai_gateway.py        # compliance scoring via Azure OpenAI behind APIM
-│   ├── crm.py               # create the downstream CRM/records entry
+│   ├── ai_gateway.py        # compliance scoring: Azure OpenAI v1 Responses API behind APIM
+│   ├── crm.py               # case-system adapter: in-memory stub, or HTTP to CRM_BASE
 │   ├── event_grid.py        # publish PermitCreated to Event Grid
 │   └── monitor.py           # query the end-to-end trace (Log Analytics / KQL)
 ├── schemas/
@@ -42,7 +43,7 @@ A submitted permit flows through these steps — each delegated to an adapter in
 
 1. **Enqueue** → `service_bus` (durable, decoupled intake)
 2. **Extract** → `document_intelligence` (fields from the application)
-3. **Score** → `ai_gateway` (0–100 compliance score via Azure OpenAI behind APIM)
+3. **Score** → `ai_gateway` (0–100 compliance score, structured output, via the Azure OpenAI v1 API behind APIM)
 4. **Record** → `crm` (create the downstream case)
 5. **Publish** → `event_grid` (`PermitCreated` fan-out to subscribers)
 6. **Trace** → `monitor` (the correlated journey across every hop)

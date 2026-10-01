@@ -3,39 +3,44 @@
 
   Resolves a caller identity with precedence: Entra `oid` > `x-user-id` > subscription id,
   applies a per-user token budget, and emits a per-user token metric for chargeback.
-  Apply to the Azure OpenAI (model) API's inbound scope. Requires the APIM named
-  values `entra-openid-config` and `entra-audience` only if the Entra JWT branch
-  is enabled.
+  Apply to the Azure OpenAI v1 (model) API's inbound scope, before the
+  managed-identity backend authentication. Requires the APIM named values
+  `tenant-id` and `entra-audience` only if the Entra token branch is used.
 -->
 <policies>
   <inbound>
     <base />
-    <!-- Resolve userId: Entra oid (if a bearer token is present) > x-user-id > subscription id. -->
+    <!-- Resolve userId: Entra oid (if a bearer JWT is present) > x-user-id > subscription id.
+         The OpenAI client also sends the APIM key as a bearer value, so only a
+         JWT-shaped token (three dot-separated segments) takes the Entra branch. -->
     <set-variable name="userId" value="@(context.Request.Headers.GetValueOrDefault("x-user-id", context.Subscription?.Id ?? "anonymous"))" />
     <choose>
-      <when condition="@(context.Request.Headers.ContainsKey("Authorization"))">
-        <validate-jwt header-name="Authorization" failed-validation-httpcode="401" require-scheme="Bearer">
-          <openid-config url="{{entra-openid-config}}" />
+      <when condition="@{
+          var auth = context.Request.Headers.GetValueOrDefault("Authorization", "");
+          return auth.StartsWith("Bearer ") && auth.Substring(7).Split('.').Length == 3;
+      }">
+        <validate-azure-ad-token tenant-id="{{tenant-id}}" failed-validation-httpcode="401"
+                                 output-token-variable-name="entraToken">
           <audiences>
             <audience>{{entra-audience}}</audience>
           </audiences>
-        </validate-jwt>
-        <set-variable name="userId" value="@(context.Request.Headers.GetValueOrDefault("Authorization","").Length > 0 ? (context.User?.Id ?? (string)context.Variables["userId"]) : (string)context.Variables["userId"])" />
+        </validate-azure-ad-token>
+        <set-variable name="userId" value="@(((Jwt)context.Variables["entraToken"]).Claims.GetValueOrDefault("oid", (string)context.Variables["userId"]))" />
       </when>
     </choose>
 
     <!-- Per-user token budget (tokens per minute), keyed by resolved userId. -->
-    <azure-openai-token-limit
+    <llm-token-limit
       counter-key="@((string)context.Variables["userId"])"
       tokens-per-minute="20000"
-      estimate-prompt-tokens="true"
+      estimate-prompt-tokens="false"
       remaining-tokens-header-name="x-tokens-remaining" />
 
     <!-- Emit per-user token metric for chargeback dashboards (UserId / TeamId dims). -->
-    <azure-openai-emit-token-metric namespace="genai">
+    <llm-emit-token-metric namespace="genai">
       <dimension name="UserId" value="@((string)context.Variables["userId"])" />
       <dimension name="TeamId" value="@(context.Request.Headers.GetValueOrDefault("x-team-id","unassigned"))" />
-    </azure-openai-emit-token-metric>
+    </llm-emit-token-metric>
 
     <!-- Structured trace for the Log Analytics gateway-logs path. -->
     <trace source="per-user-cost-attribution" severity="information">

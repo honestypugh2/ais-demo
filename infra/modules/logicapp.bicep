@@ -1,16 +1,23 @@
-// Logic App (Consumption) — permit-intake orchestration (Option A / Demo Track A7).
+// Logic App (Consumption) — permit-intake orchestration (Demo Track A6/A7).
 //
-// HTTP request trigger -> enqueue the permit onto Service Bus using the Logic
-// App's managed identity (no connection string) -> return 202 Accepted. Gives
-// the "Runs history" orchestration view the Demo Track shows at step A7.
-//
-// Grant the returned principalId "Azure Service Bus Data Sender" on the namespace.
-
+// The workflow definition is loaded from integration/logicapp/permit-intake-workflow.json
+// so the portable artifact and the deployed workflow are identical:
+// HTTP trigger -> validate (400 on missing fields) -> enrich -> enqueue to Service
+// Bus with the Logic App's managed identity (MessageId = parcel for duplicate
+// detection, CorrelationId = X-Correlation-Id) -> 202 Accepted.
 param name string
 param location string
 param tags object
-param serviceBusNamespace string
+param serviceBusNamespaceName string
 param queueName string = 'permits-in'
+
+var workflow = loadJsonContent('../../integration/logicapp/permit-intake-workflow.json')
+var triggerName = 'When_a_permit_is_submitted'
+var serviceBusDataSenderRoleId = '69a216fc-b8fb-44d8-bc22-1f3c2cd27a39'
+
+resource serviceBus 'Microsoft.ServiceBus/namespaces@2026-01-01' existing = {
+  name: serviceBusNamespaceName
+}
 
 resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
   name: name
@@ -19,83 +26,25 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
   identity: { type: 'SystemAssigned' }
   properties: {
     state: 'Enabled'
-    definition: {
-      '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
-      contentVersion: '1.0.0.0'
-      parameters: {}
-      triggers: {
-        manual: {
-          type: 'Request'
-          kind: 'Http'
-          inputs: {
-            schema: {
-              type: 'object'
-              properties: {
-                name: { type: 'string' }
-                type: { type: 'string' }
-                parcel: { type: 'string' }
-              }
-            }
-          }
-        }
-      }
-      actions: {
-        Initialize_correlationId: {
-          type: 'InitializeVariable'
-          runAfter: {}
-          inputs: {
-            variables: [
-              {
-                name: 'correlationId'
-                type: 'string'
-                value: '@{coalesce(triggerOutputs()?[\'headers\']?[\'X-Correlation-Id\'], guid())}'
-              }
-            ]
-          }
-        }
-        Enqueue_permit: {
-          type: 'Http'
-          runAfter: {
-            Initialize_correlationId: [ 'Succeeded' ]
-          }
-          inputs: {
-            method: 'POST'
-            uri: 'https://${serviceBusNamespace}.servicebus.windows.net/${queueName}/messages'
-            headers: {
-              'Content-Type': 'application/json'
-              BrokerProperties: '@{concat(\'{"CorrelationId":"\', variables(\'correlationId\'), \'","MessageId":"\', guid(), \'"}\')}'
-            }
-            body: '@triggerBody()'
-            authentication: {
-              type: 'ManagedServiceIdentity'
-              audience: 'https://servicebus.azure.net'
-            }
-          }
-        }
-        Response: {
-          type: 'Response'
-          kind: 'Http'
-          runAfter: {
-            Enqueue_permit: [ 'Succeeded' ]
-          }
-          inputs: {
-            statusCode: 202
-            headers: {
-              'X-Correlation-Id': '@{variables(\'correlationId\')}'
-              'Content-Type': 'application/json'
-            }
-            body: {
-              status: 'accepted'
-              via: 'logic-app'
-              correlationId: '@{variables(\'correlationId\')}'
-            }
-          }
-        }
-      }
+    definition: workflow.definition
+    parameters: {
+      serviceBusNamespace: { value: serviceBusNamespaceName }
+      permitsQueue: { value: queueName }
     }
+  }
+}
+
+resource logicAppSendsToServiceBus 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(serviceBus.id, logicApp.id, serviceBusDataSenderRoleId)
+  scope: serviceBus
+  properties: {
+    principalId: logicApp.identity.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', serviceBusDataSenderRoleId)
   }
 }
 
 output id string = logicApp.id
 output name string = logicApp.name
+output triggerName string = triggerName
 output principalId string = logicApp.identity.principalId

@@ -25,7 +25,7 @@ Application Insights. Malformed or repeatedly failing messages are
 | File | Purpose |
 | --- | --- |
 | [`function_app.py`](function_app.py) | The `ProcessPermit` Service Bus trigger; delegates to `ais_demo.orchestrator.process_permit`. |
-| [`host.json`](host.json) | Functions host config (extension bundle for the Service Bus binding). |
+| [`host.json`](host.json) | Functions host config (OpenTelemetry telemetry mode, extension bundle 4.x for the Service Bus binding). |
 | [`requirements.txt`](requirements.txt) | Runtime dependencies for the deployed function (installed by remote build). |
 | [`local.settings.json.example`](local.settings.json.example) | Sample local settings — copy to `local.settings.json` for local runs. |
 
@@ -37,18 +37,21 @@ Application Insights. Malformed or repeatedly failing messages are
 | `SERVICEBUS_FQDN` | Namespace FQDN for outbound sends. |
 | `DOCINTEL_ENDPOINT` | Document Intelligence endpoint. |
 | `EVENTGRID_ENDPOINT` | Event Grid topic endpoint. |
-| `AOAI_VIA_APIM_BASE` / `APIM_SUBSCRIPTION_KEY` | Compliance scoring via the APIM AI gateway. |
+| `AOAI_VIA_APIM_BASE` / `APIM_SUBSCRIPTION_KEY` | Compliance scoring via the APIM AI gateway (Azure OpenAI v1 API). |
+| `AOAI_DEPLOYMENT` | Model deployment name (`gpt-5.4-mini`). |
+| `PYTHON_APPLICATIONINSIGHTS_ENABLE_TELEMETRY` | `true` — the worker streams OpenTelemetry logs and traces (with `telemetryMode: OpenTelemetry` in `host.json`). |
 | `AZURE_CLIENT_ID` | User-assigned managed identity client ID. |
 | `SIMULATED_MODE` | `false` in Azure; adapters fall back to simulated when endpoints are unset. |
 
 ## Deploy
 
-The Function App (Flex Consumption) is provisioned by
+The Function App (Flex Consumption, Python 3.14, OpenTelemetry to Application
+Insights) is provisioned by
 [infra/modules/functionapp.bicep](../infra/modules/functionapp.bicep). Publish the
 code with a bundled copy of the `ais_demo` package:
 
 ```bash
-func azure functionapp publish <function-app-name> --python --build remote
+../scripts/publish_function.sh <function-app-name>   # Core Tools 4.15+
 ```
 
 See the [deployment guide](../docs/deployment-guide.md) for the full RBAC +

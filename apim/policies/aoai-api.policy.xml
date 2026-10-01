@@ -1,33 +1,57 @@
 <!--
-  Azure OpenAI API — AI-gateway policy (Demo Track steps A5, B4).
+  Azure OpenAI v1 API — AI-gateway policy (Demo Track steps A5, B4).
 
-  The permit compliance-scoring model is fronted by APIM. This applies the
-  wordpress-chatbot AI-gateway pattern:
-    • azure-openai-token-limit        — cap tokens/min per consumer (cost control)
-    • azure-openai-emit-token-metric  — publish token usage to App Insights with
-                                        the subscription/department as a dimension
-                                        (per-team AI chargeback signal)
-    • managed-identity backend auth   — no model key on the wire
+  The permit compliance-scoring model is fronted by APIM. Clients call the
+  Azure OpenAI v1 API (/openai/v1/...) with an APIM subscription key in the
+  `api-key` header. Applied on every model call:
+    • llm-content-safety     — Azure AI Content Safety + prompt shields before
+                               the prompt reaches the model
+    • llm-token-limit        — per-consumer tokens/minute (429) and monthly
+                               token quota (403)
+    • llm-emit-token-metric  — token usage to Application Insights with the
+                               subscription + department as dimensions
+                               (per-team AI chargeback signal)
+    • managed-identity backend auth — no model key on the wire; the caller's
+                               APIM key is stripped before forwarding
+
+  Backends: `foundry-models-backend` (Foundry resource /openai endpoint) and
+  `content-safety-backend` (the same Foundry resource's cognitiveservices
+  endpoint, managed-identity auth with resource https://cognitiveservices.azure.com).
 -->
 <policies>
   <inbound>
     <base />
-    <!-- Per-consumer token budget: 429 when exceeded. -->
-    <azure-openai-token-limit counter-key="@(context.Subscription?.Key ?? "anonymous")"
-                              tokens-per-minute="20000"
-                              estimate-prompt-tokens="true"
-                              remaining-tokens-header-name="x-ratelimit-remaining-tokens"
-                              tokens-consumed-header-name="x-ratelimit-consumed-tokens" />
+    <!-- Block harmful prompts and prompt-injection attempts (Prompt Shields). -->
+    <llm-content-safety backend-id="content-safety-backend" shield-prompt="true">
+      <categories output-type="EightSeverityLevels">
+        <category name="Hate" threshold="4" />
+        <category name="SelfHarm" threshold="4" />
+        <category name="Sexual" threshold="4" />
+        <category name="Violence" threshold="4" />
+      </categories>
+    </llm-content-safety>
 
-    <!-- Emit token metrics for chargeback (dimension: consumer + department). -->
-    <azure-openai-emit-token-metric namespace="ais-demo-ai-gateway">
+    <!-- Per-consumer token rate limit (429) and monthly quota (403). Limits use the
+         actual usage reported by the model (Responses and Chat Completions). -->
+    <llm-token-limit counter-key="@(context.Subscription?.Id ?? "anonymous")"
+                     tokens-per-minute="20000"
+                     token-quota="2000000"
+                     token-quota-period="Monthly"
+                     estimate-prompt-tokens="false"
+                     remaining-tokens-header-name="x-ratelimit-remaining-tokens"
+                     remaining-quota-tokens-header-name="x-quota-remaining-tokens"
+                     tokens-consumed-header-name="x-ratelimit-consumed-tokens" />
+
+    <!-- Emit token metrics for chargeback (dimensions: consumer + department). -->
+    <llm-emit-token-metric namespace="ais-demo-ai-gateway">
       <dimension name="Subscription" value="@(context.Subscription?.Name ?? "unknown")" />
       <dimension name="Department" value="@(context.Request.Headers.GetValueOrDefault("x-dept", "unknown"))" />
-    </azure-openai-emit-token-metric>
+    </llm-emit-token-metric>
 
-    <!-- Authenticate to the Azure OpenAI backend with APIM's managed identity. -->
+    <!-- Never forward the caller's APIM key; authenticate with APIM's managed identity. -->
+    <set-header name="api-key" exists-action="delete" />
     <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
-    <set-backend-service backend-id="azure-openai-backend" />
+    <set-backend-service backend-id="foundry-models-backend" />
   </inbound>
   <backend>
     <base />

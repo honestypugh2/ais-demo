@@ -1,36 +1,42 @@
 // ============================================================================
 // Token monitoring — tokens consumed through the APIM AI gateway.
 //
-// Source: the `azure-openai-emit-token-metric` policy on the Azure OpenAI API
-// (namespace "ais-demo-ai-gateway", dimensions Subscription + Department).
-// See apim/policies/aoai-api.policy.xml.
+// Source: the `llm-emit-token-metric` policy on the Azure OpenAI v1 API
+// (namespace "ais-demo-ai-gateway", custom dimensions Subscription + Department).
+// The policy emits one metric, `azure.ai_gateway.client.token.usage`, with the
+// token category in the `gen_ai.token.type` dimension: total_tokens,
+// input_tokens, output_tokens, output_tokens_details.reasoning_tokens,
+// input_tokens_details.cached_tokens, ... (Chat Completions calls may report
+// prompt_tokens / completion_tokens instead). Requires custom metrics with
+// dimensions on the API's Application Insights diagnostic (infra/modules/apim.bicep).
 //
-// Run in: Application Insights › Logs (classic `customMetrics` schema).
-// For a workspace-based Application Insights resource, use the `AppMetrics`
-// variant at the bottom of this file.
+// Run in: Log Analytics (workspace-based Application Insights, `AppMetrics`).
+// For Application Insights › Logs, use the `customMetrics` variant at the bottom.
 // ============================================================================
 
-// --- Tokens per hour, split by metric and department ------------------------
-customMetrics
-| where name in ("Total Tokens", "Prompt Tokens", "Completion Tokens")
-| extend Subscription = tostring(customDimensions["Subscription"]),
-         Department   = tostring(customDimensions["Department"])
-| summarize Tokens = sum(valueSum) by bin(timestamp, 1h), name, Department
+// --- Tokens per hour, split by token type and department --------------------
+AppMetrics
+| where Name == "azure.ai_gateway.client.token.usage"
+| extend TokenType    = tostring(Properties["gen_ai.token.type"]),
+         Subscription = tostring(Properties["Subscription"]),
+         Department   = tostring(Properties["Department"])
+| summarize Tokens = sum(Sum) by bin(TimeGenerated, 1h), TokenType, Department
 | render timechart
 
 // --- Top consumers over the last 24h ----------------------------------------
-// customMetrics
-// | where timestamp > ago(24h)
-// | where name == "Total Tokens"
-// | extend Subscription = tostring(customDimensions["Subscription"]),
-//          Department   = tostring(customDimensions["Department"])
-// | summarize TotalTokens = sum(valueSum) by Subscription, Department
-// | top 10 by TotalTokens desc
-
-// --- Workspace-based Application Insights (AppMetrics) equivalent ------------
 // AppMetrics
-// | where Name in ("Total Tokens", "Prompt Tokens", "Completion Tokens")
+// | where TimeGenerated > ago(24h)
+// | where Name == "azure.ai_gateway.client.token.usage"
+// | where tostring(Properties["gen_ai.token.type"]) == "total_tokens"
 // | extend Subscription = tostring(Properties["Subscription"]),
 //          Department   = tostring(Properties["Department"])
-// | summarize Tokens = sum(Sum) by bin(TimeGenerated, 1h), Name, Department
+// | summarize TotalTokens = sum(Sum) by Subscription, Department
+// | top 10 by TotalTokens desc
+
+// --- Application Insights › Logs (customMetrics) equivalent ------------------
+// customMetrics
+// | where name == "azure.ai_gateway.client.token.usage"
+// | extend TokenType  = tostring(customDimensions["gen_ai.token.type"]),
+//          Department = tostring(customDimensions["Department"])
+// | summarize Tokens = sum(valueSum) by bin(timestamp, 1h), TokenType, Department
 // | render timechart

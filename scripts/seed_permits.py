@@ -4,17 +4,15 @@ Usage:
     uv run python scripts/seed_permits.py [count]
 """
 
-from __future__ import annotations
-
 import sys
 
 from ais_demo.core.correlation import new_correlation_id
 from ais_demo.integrations import service_bus
 
 SAMPLES = [
-    {"name": "Jordan Lee", "type": "Building", "parcel": "AIS-2026-00417"},
-    {"name": "Sam Rivera", "type": "Electrical", "parcel": "AIS-2026-00521"},
-    {"name": "Priya Chandra", "type": "Plumbing", "parcel": "AIS-2026-00622"},
+    {"name": "[Applicant Name 1]", "type": "Building", "parcel": "AIS-2026-00417"},
+    {"name": "[Applicant Name 2]", "type": "Electrical", "parcel": "AIS-2026-00521"},
+    {"name": "[Applicant Name 3]", "type": "Plumbing", "parcel": "AIS-2026-00622"},
 ]
 
 

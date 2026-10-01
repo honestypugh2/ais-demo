@@ -8,7 +8,7 @@ client = TestClient(create_app())
 
 
 def test_submit_returns_202_with_correlation_id():
-    resp = client.post("/api/permits", json={"name": "Jordan Lee", "type": "Building"})
+    resp = client.post("/api/permits", json={"name": "[Applicant Name]", "type": "Building"})
     assert resp.status_code == 202
     body = resp.json()
     assert body["status"] == "accepted"
@@ -19,7 +19,7 @@ def test_submit_returns_202_with_correlation_id():
 def test_submit_then_process_produces_result():
     submit = client.post(
         "/api/permits",
-        json={"name": "Sam Rivera", "type": "Electrical", "parcel": "AIS-2026-00521"},
+        json={"name": "[Applicant Name 2]", "type": "Electrical", "parcel": "AIS-2026-00521"},
     )
     assert submit.status_code == 202
 

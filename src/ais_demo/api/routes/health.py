@@ -1,7 +1,5 @@
 """Health/readiness endpoint."""
 
-from __future__ import annotations
-
 from fastapi import APIRouter
 
 from ais_demo import __version__

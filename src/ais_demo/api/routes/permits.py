@@ -6,8 +6,6 @@ and exposes an endpoint to drain the queue through the processing orchestrator
 (what the Service Bus-triggered Function does in the deployed flow).
 """
 
-from __future__ import annotations
-
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 

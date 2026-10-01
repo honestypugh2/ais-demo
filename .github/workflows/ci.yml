@@ -1,8 +1,7 @@
 name: CI
 
-# Build, lint, type-check, test the Python package and validate the Bicep IaC.
-# Extend with an azd deploy job (OIDC federated credentials) for CD — see
-# docs/production-path.md.
+# Build, lint, type-check, test the Python package, validate the Bicep IaC, and
+# build the portal. Deployment (azd + OIDC) lives in deploy.yml.
 
 on:
   push:
@@ -19,18 +18,17 @@ jobs:
     name: Python quality gates
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.2.0
         with:
-          version: "0.11.x"
-
-      - name: Set up Python
-        run: uv python install 3.11
+          version: "0.12.21"
+          python-version: "3.14"
+          enable-cache: true
 
       - name: Sync dependencies
-        run: uv sync --extra dev
+        run: uv sync --locked --extra dev
 
       - name: Lint (ruff)
         run: uv run ruff check .
@@ -41,14 +39,26 @@ jobs:
       - name: Test (pytest)
         run: uv run pytest -q
 
+      - name: Functions host imports on the deployed runtime
+        working-directory: functionapp
+        run: |
+          uv venv /tmp/fn --python 3.14
+          VIRTUAL_ENV=/tmp/fn uv pip install -r requirements.txt
+          /tmp/fn/bin/python -c "import function_app"
+
   bicep:
     name: Validate Bicep
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
+      - name: Upgrade Bicep CLI
+        run: az bicep upgrade
 
       - name: Build Bicep (lint + compile)
-        run: az bicep build --file infra/main.bicep --stdout > /dev/null
+        run: |
+          az bicep build --file infra/main.bicep --stdout > /dev/null
+          az bicep build-params --file infra/main.bicepparam --stdout > /dev/null
 
   frontend:
     name: Frontend build
@@ -57,9 +67,12 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "24"
+          check-latest: true
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run build

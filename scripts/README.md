@@ -9,8 +9,9 @@ from the repo root.
 | [`app.sh`](app.sh) | **Start/stop the local portal.** Runs the FastAPI backend (:8000) + Vite frontend (:5173) in the background. Commands: `start`, `stop`, `restart`, `status`, `logs`. |
 | [`run_local.sh`](run_local.sh) | Run the backend + frontend together in the **foreground** (Ctrl-C stops both). |
 | [`run_demo.sh`](run_demo.sh) | **Live rehearsal against Azure.** Discovers API Center, drives both governed front doors — Part A (APIM → Logic App) and Part B (APIM direct) — plus an AI-gateway call, and prints the correlated App Insights trace. Usage: `run_demo.sh [a|b|all]`. |
+| [`publish_function.sh`](publish_function.sh) | **Publish the Function code.** Stages `functionapp/` with a copy of `src/ais_demo` and pinned requirements from `uv.lock`, then publishes with a remote build (Core Tools 4.15+). Usage: `publish_function.sh <function-app-name>`. |
 | [`seed_permits.py`](seed_permits.py) | Seed the Service Bus queue with sample permits (live or simulated). Run with `uv run python scripts/seed_permits.py [count]`. |
-| [`get_token.sh`](get_token.sh) | Mint an Entra ID access token (OAuth2 client-credentials) for the JWT-protected Permits API — used in Demo Track step A14 to show `202` with a valid token and `401` without. Reads `TENANT_ID`, `CLIENT_ID`, `CLIENT_SECRET`, `API_SCOPE`. |
+| [`get_token.sh`](get_token.sh) | Mint an Entra ID access token (OAuth2 client-credentials) for the Entra-protected Permits API — used in Demo Track step A14 to show `202` with a valid token and `401` without. Reads `TENANT_ID`, `CLIENT_ID`, `CLIENT_SECRET`, `API_SCOPE`. |
 
 ## Common flows
 

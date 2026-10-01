@@ -19,13 +19,13 @@
 
   <!-- policy stack -->
   <rect x="250" y="120" width="300" height="180" rx="6" fill="#0F6CBD" stroke="#0B4E8A"/>
-  <text x="400" y="140" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Azure OpenAI API  /openai</text>
+  <text x="400" y="140" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Azure OpenAI v1 API  /openai/v1</text>
   <g font-size="10.5">
-    <rect x="264" y="152" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="169" fill="#0B4E8A" text-anchor="middle">azure-openai-semantic-cache-lookup</text>
-    <rect x="264" y="184" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="201" fill="#0B4E8A" text-anchor="middle">azure-openai-token-limit (per-consumer TPM)</text>
-    <rect x="264" y="216" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="233" fill="#0B4E8A" text-anchor="middle">azure-openai-emit-token-metric (Sub·Dept)</text>
-    <rect x="264" y="248" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="265" fill="#0B4E8A" text-anchor="middle">retry + authentication-managed-identity</text>
-    <rect x="264" y="280" width="272" height="14" rx="3" fill="#EAF7EA" stroke="#107C10"/><text x="400" y="291" fill="#0B5A0B" text-anchor="middle" font-size="9.5">store on miss ▸ azure-openai-semantic-cache-store</text>
+    <rect x="264" y="152" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="169" fill="#0B4E8A" text-anchor="middle">llm-semantic-cache-lookup</text>
+    <rect x="264" y="184" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="201" fill="#0B4E8A" text-anchor="middle">llm-token-limit (TPM + monthly quota)</text>
+    <rect x="264" y="216" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="233" fill="#0B4E8A" text-anchor="middle">llm-emit-token-metric (Sub·Dept)</text>
+    <rect x="264" y="248" width="272" height="26" rx="4" fill="#fff" stroke="#0B4E8A"/><text x="400" y="265" fill="#0B4E8A" text-anchor="middle">llm-content-safety · retry · managed identity</text>
+    <rect x="264" y="280" width="272" height="14" rx="3" fill="#EAF7EA" stroke="#107C10"/><text x="400" y="291" fill="#0B5A0B" text-anchor="middle" font-size="9.5">store on miss ▸ llm-semantic-cache-store</text>
   </g>
 
   <!-- backend pool -->
@@ -41,15 +41,15 @@
 
   <!-- backends -->
   <rect x="640" y="110" width="280" height="60" rx="6" fill="#EAF7EA" stroke="#107C10"/>
-  <text x="780" y="135" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">AOAI · East US 2  (priority 1)</text>
-  <text x="780" y="152" font-size="10" fill="#0B5A0B" text-anchor="middle">gpt-4o-mini · GlobalStandard</text>
+  <text x="780" y="135" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">Foundry · East US 2  (priority 1)</text>
+  <text x="780" y="152" font-size="10" fill="#0B5A0B" text-anchor="middle">gpt-5.4-mini · GlobalStandard</text>
 
   <rect x="640" y="190" width="280" height="60" rx="6" fill="#EAF7EA" stroke="#107C10"/>
-  <text x="780" y="215" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">AOAI · West US  (priority 2)</text>
+  <text x="780" y="215" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">Foundry · West US  (priority 2)</text>
   <text x="780" y="232" font-size="10" fill="#0B5A0B" text-anchor="middle">failover capacity</text>
 
   <rect x="640" y="270" width="280" height="60" rx="6" fill="#EAF7EA" stroke="#107C10"/>
-  <text x="780" y="295" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">AOAI · Sweden Central  (priority 2)</text>
+  <text x="780" y="295" font-size="12" font-weight="700" fill="#0B5A0B" text-anchor="middle">Foundry · Sweden Central  (priority 2)</text>
   <text x="780" y="312" font-size="10" fill="#0B5A0B" text-anchor="middle">spillover / data residency</text>
 
   <!-- app insights -->

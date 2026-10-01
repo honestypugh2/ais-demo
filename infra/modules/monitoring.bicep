@@ -1,9 +1,9 @@
-// Monitoring: Log Analytics workspace + Application Insights.
+// Monitoring: Log Analytics workspace + workspace-based Application Insights.
 param name string
 param location string
 param tags object
 
-resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
   name: '${name}-law'
   location: location
   tags: tags
@@ -27,5 +27,5 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 output workspaceId string = logAnalytics.id
 output workspaceCustomerId string = logAnalytics.properties.customerId
 output appInsightsId string = appInsights.id
-output appInsightsInstrumentationKey string = appInsights.properties.InstrumentationKey
+output appInsightsName string = appInsights.name
 output appInsightsConnectionString string = appInsights.properties.ConnectionString

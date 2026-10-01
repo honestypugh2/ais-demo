@@ -17,3 +17,4 @@ docs
 tests
 infra
 *.md
+!README.md

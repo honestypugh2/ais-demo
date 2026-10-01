@@ -107,7 +107,7 @@ ok "Workspace : ${LAW:-<none>}"
 
 # Master subscription key (all-APIs) for the demo calls.
 KEY=$(az rest --method post \
-  --url "https://management.azure.com/subscriptions/$SUB/resourceGroups/$RG/providers/Microsoft.ApiManagement/service/$APIM/subscriptions/master/listSecrets?api-version=2022-08-01" \
+  --url "https://management.azure.com/subscriptions/$SUB/resourceGroups/$RG/providers/Microsoft.ApiManagement/service/$APIM/subscriptions/master/listSecrets?api-version=2024-05-01" \
   --query primaryKey -o tsv)
 [ -n "$KEY" ] || { echo "Could not retrieve an APIM subscription key" >&2; exit 1; }
 
@@ -127,18 +127,18 @@ show_trace() {
   while [ "$(date +%s)" -lt "$deadline" ]; do
     local rows
     rows=$(az monitor log-analytics query --subscription "$SUB" -w "$WID" --analytics-query \
-      "AppTraces | where TimeGenerated > ago(15m) | where Message has '$parcel' or Message has 'ProcessPermit' or Message has 'compliance' or Message has 'published' | project TimeGenerated, Message | order by TimeGenerated asc | take 15" \
+      "AppTraces | where TimeGenerated > ago(15m) | where Message has '$parcel' | project TimeGenerated, Message | order by TimeGenerated asc | take 15" \
       -o json 2>/dev/null || echo "[]")
     if printf '%s' "$rows" | python3 -c '
 import sys, json
 rows = json.load(sys.stdin)
-if any("published" in (r.get("Message") or "") for r in rows):
+if any("Processed permit" in (r.get("Message") or "") for r in rows):
     for r in rows:
         print("   %s  %s" % ((r.get("TimeGenerated") or "")[11:19], r.get("Message")))
     sys.exit(0)
 sys.exit(1)
 '; then
-      ok "End-to-end trace complete (PermitCreated published)."
+      ok "End-to-end trace complete (permit processed and PermitCreated published)."
       return
     fi
     sleep 6
@@ -192,13 +192,18 @@ part_b() {
   show_trace "$parcel"
 
   step "PART B — AI gateway compliance model (Demo Track A5/B4)"
-  info "Chat completion through the APIM AI gateway (token governance headers)…"
+  info "Responses API call (Azure OpenAI v1) through the APIM AI gateway (token governance headers)…"
   curl -s -o /tmp/run_demo_aoai.json -D /tmp/run_demo_aoai_hdr.txt \
-    -X POST "$GATEWAY/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-10-21" \
+    -X POST "$GATEWAY/openai/v1/responses" \
     -H "api-key: $KEY" -H "Content-Type: application/json" -H "x-dept: permitting" \
-    -d '{"messages":[{"role":"user","content":"Reply with the single word READY."}],"max_tokens":5,"temperature":0}'
+    -d '{"model":"'"${AOAI_DEPLOYMENT:-gpt-5.4-mini}"'","input":"Reply with the single word READY.","reasoning":{"effort":"low"},"max_output_tokens":200,"store":false}'
   local answer
-  answer=$(python3 -c 'import sys,json; d=json.load(open("/tmp/run_demo_aoai.json")); print(d.get("choices",[{}])[0].get("message",{}).get("content","n/a"))' 2>/dev/null || echo "n/a")
+  answer=$(python3 -c '
+import json
+d = json.load(open("/tmp/run_demo_aoai.json"))
+texts = [c.get("text", "") for o in d.get("output", []) if o.get("type") == "message" for c in o.get("content", []) if c.get("type") == "output_text"]
+print(" ".join(texts) or d.get("error", {}).get("message", "n/a"))
+' 2>/dev/null || echo "n/a")
   printf '   model reply : %s\n' "$answer"
   grep -iE '^x-ratelimit-(consumed|remaining)-tokens:' /tmp/run_demo_aoai_hdr.txt | sed 's/^/   /' || true
 }
