@@ -63,6 +63,7 @@ Parameters worth knowing:
 | `deployApim` | `true` | `false` skips API Management + API Center for a fast loop; compliance scoring then runs simulated. |
 | `modelName` / `modelVersion` | `gpt-5.4-mini` / `2026-03-17` | GA; see the [model retirement schedule](https://learn.microsoft.com/azure/foundry/openai/concepts/model-retirement-schedule). |
 | `notificationWebhookUrl` | *(empty)* | Endpoint must answer the Event Grid validation handshake. |
+| `functionStorageExtraTags` | `{}` | Extra tags for the Function's host storage account, for subscriptions whose policies require one (for example, to keep public network access on without VNet integration). Put environment-specific values in a copy named `infra/main.local.bicepparam` (gitignored) and pass that file instead of `main.bicepparam`. |
 
 ### Upgrading an environment deployed from an earlier version of this repo
 
