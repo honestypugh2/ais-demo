@@ -1,8 +1,10 @@
 """API Management client (Demo Track step B1).
 
-Submits a permit packet through the governed APIM front door with an Entra
-bearer token and a subscription key. Returns the HTTP status and the
-correlation ID stamped by the APIM policy.
+Submits a permit packet through the governed APIM front door with a
+subscription key, plus a Microsoft Entra bearer token when client credentials
+are configured (required once the Entra-protected policy variant,
+``apim/policies/permits-api.policy.xml``, is applied). Returns the HTTP status
+and the correlation ID stamped by the APIM policy.
 """
 
 import httpx2
@@ -35,18 +37,15 @@ def submit_permit(permit: dict) -> tuple[int, str]:
         logger.info("Submitted permit through APIM (simulated) -> 202 %s", correlation_id)
         return 202, correlation_id
 
-    token = acquire_token(settings)
+    headers = {
+        "Ocp-Apim-Subscription-Key": settings.apim_subscription_key,
+        "Content-Type": "application/json",
+    }
+    if settings.tenant_id and settings.client_id and settings.client_secret:
+        headers["Authorization"] = f"Bearer {acquire_token(settings)}"
+
     url = f"{settings.apim_base}{settings.permits_api_path}"
-    resp = httpx2.post(
-        url,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Ocp-Apim-Subscription-Key": settings.apim_subscription_key,
-            "Content-Type": "application/json",
-        },
-        json=permit,
-        timeout=30,
-    )
+    resp = httpx2.post(url, headers=headers, json=permit, timeout=30)
     correlation_id = resp.headers.get(CORRELATION_HEADER, "")
     logger.info("Submitted permit through APIM -> %s %s", resp.status_code, correlation_id)
     return resp.status_code, correlation_id

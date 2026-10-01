@@ -21,19 +21,21 @@ variables as the main demo (see `.env.example`):
 | `ai_gateway_call.py` | Baseline governed model call through APIM; prints token usage returned by the gateway. |
 | `per_user_cost_attribution.py` | FinOps: passes user identity (`x-user-id`), reads per-request token usage, builds a per-user cost/chargeback record. |
 | `model_router_decisions.py` | Cost/latency-aware model routing: pick a cheap vs. capable deployment per request and log the decision. |
-| `mcp_tools_gateway.py` | Calls an MCP tool surface governed by the same APIM gateway (rate-limit + auth). |
 | `apim/per-user-cost-attribution.policy.xml` | Illustrative gateway policy: resolve identity (Entra `oid` › `x-user-id` › subscription), per-user token limit, emit per-user token metric. |
 
 ## KQL — token monitoring & chargeback
 
 The FinOps scripts attribute cost at request time; these queries are the
 aggregate, dashboard-friendly view. Both read the metric emitted by
-`llm-emit-token-metric` (namespace `ais-demo-ai-gateway`, dimensions
-`Subscription` + `Department`). Run them in **Application Insights › Logs**.
+`llm-emit-token-metric`: `azure.ai_gateway.client.token.usage`, with the token
+category (`input_tokens`, `output_tokens`, `total_tokens`, reasoning and cached
+tokens) in the `gen_ai.token.type` dimension and the custom `Subscription` +
+`Department` dimensions. Run them in **Log Analytics** (`AppMetrics`); each file
+also has an Application Insights `customMetrics` variant.
 
 | File | What it shows |
 | --- | --- |
-| `kql/token-monitoring.kql` | Tokens/hour by metric and department; top consumers (24h). |
+| `kql/token-monitoring.kql` | Tokens/hour by token type and department; top consumers (24h). |
 | `kql/chargeback.kql` | Per-department token → USD cost (30-day showback/chargeback). |
 
 ## Run

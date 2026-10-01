@@ -90,8 +90,10 @@ and [backend load balancing & circuit breaker](https://learn.microsoft.com/azure
   (ZRS), and a zone-redundant Functions plan.
 - **Multi-region** — active/passive with Front Door and paired-region
   replication; Service Bus geo-DR; APIM multi-region gateways.
-- **Resilience patterns** — already demonstrated: **dead-letter** on
-  `permits-in`, retries via delivery count, correlation IDs. Add: idempotency
+- **Resilience patterns** — already demonstrated: `202` only after Service Bus
+  confirms the enqueue (`503` otherwise), **dead-letter** on `permits-in`,
+  retries via delivery count, duplicate detection on the parcel, a circuit
+  breaker on the model backend, and correlation IDs. Add: idempotency
   keys on the CRM write, an **outbox** for the event publish, and circuit
   breakers on downstream calls.
 - **Backup/DR** — documented RPO/RTO, restore runbooks, and periodic DR drills.
@@ -99,8 +101,10 @@ and [backend load balancing & circuit breaker](https://learn.microsoft.com/azure
 ## Observability
 
 Already wired in the demo: one **correlation ID** flows Portal → APIM → Logic App
-→ Service Bus → Function → Event Grid into **Application Insights**, queryable as
-a single end-to-end transaction (`GET /api/trace/{id}` / Demo Track B8).
+→ Service Bus → Function → Event Grid into **Application Insights**. The intake
+and processing operations are joined by that ID in one query
+(`GET /api/trace/{id}` / Demo Track B8); propagating W3C trace context through
+the Service Bus message would make them a single transaction.
 
 For production, add:
 

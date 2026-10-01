@@ -125,8 +125,9 @@ resource appInsightsLogger 'Microsoft.ApiManagement/service/loggers@2024-05-01' 
   dependsOn: [publishTelemetry]
 }
 
-// Service-wide Application Insights diagnostic: W3C correlation and custom
-// metrics (required by llm-emit-token-metric).
+// Service-wide Application Insights diagnostic: W3C correlation, custom metrics
+// (required by llm-emit-token-metric), and the X-Correlation-Id header on every
+// request so the intake request can be joined to downstream processing.
 resource appInsightsDiagnostic 'Microsoft.ApiManagement/service/diagnostics@2024-05-01' = {
   parent: apim
   name: 'applicationinsights'
@@ -140,6 +141,10 @@ resource appInsightsDiagnostic 'Microsoft.ApiManagement/service/diagnostics@2024
     sampling: {
       samplingType: 'fixed'
       percentage: 100
+    }
+    frontend: {
+      request: { headers: [ 'X-Correlation-Id' ] }
+      response: { headers: [ 'X-Correlation-Id' ] }
     }
   }
 }

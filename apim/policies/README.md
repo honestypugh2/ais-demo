@@ -12,7 +12,7 @@ Adjust limits and thresholds for your tenant.
 | File | Applies to | Demonstrates |
 | --- | --- | --- |
 | [permits-api.policy.xml](permits-api.policy.xml) | `POST /permits` | Microsoft Entra token validation (`validate-azure-ad-token`), per-subscription rate limiting, correlation-ID stamping, backend routing |
-| [permits-api.direct.xml](permits-api.direct.xml) | `POST /permits` (direct) | Managed-identity enqueue straight to Service Bus, parcel-based `MessageId` for duplicate detection, `202` |
+| [permits-api.direct.xml](permits-api.direct.xml) | `POST /permits` (direct) | Managed-identity enqueue straight to Service Bus, parcel-based `MessageId` for duplicate detection; `202` only after Service Bus confirms (`503` otherwise) |
 | [permits-api.logicapp.xml](permits-api.logicapp.xml) | `POST /permits-orchestrated` | Forward to the Logic App trigger (validate → enrich → Service Bus) |
 | [aoai-api.policy.xml](aoai-api.policy.xml) | Azure OpenAI v1 API (`/openai/v1`) | `llm-content-safety` (Prompt Shields), `llm-token-limit` (TPM + monthly quota), `llm-emit-token-metric` (chargeback), managed-identity backend auth |
 

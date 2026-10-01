@@ -40,8 +40,8 @@
     <text x="340" y="172" fill="#fff" text-anchor="middle">/permits</text>
     <!-- aoai api -->
     <rect x="260" y="210" width="160" height="60" rx="6" fill="#0F6CBD" stroke="#0B4E8A"/>
-    <text x="340" y="234" fill="#fff" font-weight="700" text-anchor="middle">Azure OpenAI API</text>
-    <text x="340" y="251" fill="#fff" text-anchor="middle">/openai · token limit+metrics</text>
+    <text x="340" y="234" fill="#fff" font-weight="700" text-anchor="middle">Azure OpenAI v1 API</text>
+    <text x="340" y="251" fill="#fff" text-anchor="middle">/openai/v1 · AI policies</text>
     <!-- logic app -->
     <rect x="490" y="130" width="150" height="60" rx="6" fill="#8661C5" stroke="#5C2D91"/>
     <text x="565" y="155" fill="#fff" font-weight="700" text-anchor="middle">Logic App</text>
@@ -62,12 +62,12 @@
     <text x="800" y="258" fill="#0B5A0B" text-anchor="middle">field extraction</text>
     <!-- aoai model -->
     <rect x="720" y="290" width="160" height="50" rx="6" fill="#EAF7EA" stroke="#107C10"/>
-    <text x="800" y="312" fill="#0B5A0B" text-anchor="middle">Azure OpenAI model</text>
-    <text x="800" y="328" fill="#0B5A0B" text-anchor="middle">compliance score</text>
+    <text x="800" y="312" fill="#0B5A0B" text-anchor="middle">Foundry model</text>
+    <text x="800" y="328" fill="#0B5A0B" text-anchor="middle">gpt-5.4-mini · score</text>
     <!-- crm -->
     <rect x="730" y="356" width="140" height="54" rx="10" fill="#EAF7EA" stroke="#107C10"/>
-    <text x="800" y="380" fill="#0B5A0B" font-weight="700" text-anchor="middle">CRM / records</text>
-    <text x="800" y="396" fill="#0B5A0B" text-anchor="middle">permit case</text>
+    <text x="800" y="380" fill="#0B5A0B" font-weight="700" text-anchor="middle">Case system (CRM)</text>
+    <text x="800" y="396" fill="#0B5A0B" text-anchor="middle">stub or HTTP</text>
     <!-- event grid -->
     <rect x="960" y="130" width="160" height="60" rx="6" fill="#D83B01" stroke="#A5310A"/>
     <text x="1040" y="155" fill="#fff" font-weight="700" text-anchor="middle">Event Grid</text>
@@ -84,7 +84,7 @@
 
   <!-- Observability band -->
   <rect x="60" y="470" width="1080" height="50" rx="6" fill="#F3F2F1" stroke="#5E5E5E"/>
-  <text x="600" y="500" font-size="12" font-weight="700" fill="#323130" text-anchor="middle">Application Insights + Log Analytics — one correlation ID, end-to-end transaction</text>
+  <text x="600" y="500" font-size="12" font-weight="700" fill="#323130" text-anchor="middle">Application Insights + Log Analytics — one correlation ID joins intake and processing</text>
 
   <!-- Flow edges -->
   <g fill="none" stroke-width="2">
@@ -100,8 +100,7 @@
     <line x1="1040" y1="270" x2="1040" y2="288" stroke="#D83B01" marker-end="url(#arrO)"/>
     <!-- compliance call back through gateway -->
     <path d="M720,175 C560,175 420,210 420,238" stroke="#0F6CBD" stroke-dasharray="5 4" marker-end="url(#arrB)"/>
-    <line x1="340" y1="270" x2="720" y2="305" stroke="#107C10" marker-end="url(#arrG)" opacity="0"/>
-    <line x1="420" y1="240" x2="718" y2="310" stroke="#107C10" marker-end="url(#arrG)"/>
+    <path d="M420,255 C460,330 650,330 718,315" stroke="#107C10" marker-end="url(#arrG)"/>
   </g>
   <text x="470" y="205" font-size="9" fill="#0F548C">compliance call → back through AI gateway</text>
 

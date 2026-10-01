@@ -27,7 +27,7 @@ ais_demo/
 │   ├── service_bus.py       # enqueue permits onto the Service Bus queue
 │   ├── document_intelligence.py  # extract fields from the permit document
 │   ├── ai_gateway.py        # compliance scoring: Azure OpenAI v1 Responses API behind APIM
-│   ├── crm.py               # create the downstream CRM/records entry
+│   ├── crm.py               # case-system adapter: in-memory stub, or HTTP to CRM_BASE
 │   ├── event_grid.py        # publish PermitCreated to Event Grid
 │   └── monitor.py           # query the end-to-end trace (Log Analytics / KQL)
 ├── schemas/

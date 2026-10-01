@@ -48,7 +48,7 @@ status, 100/100 compliance, event published) and the correlated hop-by-hop trace
 Portal → API Management → Logic App → Service Bus → Function/AI agent → CRM → Event Grid → Notification
 ```
 
-![AIS demo architecture — governed, event-driven permit intake across API Management, Logic Apps, Service Bus, Functions, Document Intelligence, Azure OpenAI, Event Grid, and Application Insights](docs/images/architecture-overview.svg)
+![AIS demo architecture — governed, event-driven permit intake across API Management, Logic Apps, Service Bus, Functions, Document Intelligence, a Microsoft Foundry model, Event Grid, and Application Insights](docs/images/architecture-overview.svg)
 
 See [docs/architecture.md](docs/architecture.md) for diagrams and
 [docs/api-center-portal.md](docs/api-center-portal.md) for the API discovery and
@@ -108,11 +108,11 @@ src/ais_demo/     Shared package: orchestrator + integrations + FastAPI + Part B
 functionapp/      Azure Functions host (Service Bus trigger) — reuses src/ais_demo
 ai_gateway_extras/  AI-gateway feature demos: per-user cost attribution, model routing, gateway calls
 apim/policies/    APIM AI-gateway + front-door policies (direct enqueue + Logic App routing)
-infra/            Bicep IaC (Service Bus, Event Grid, Document Intelligence, AOAI, Functions, APIM, Logic App)
+infra/            Bicep IaC — every resource, APIM API/policy, Event Grid subscription, and role assignment
 integration/      Low-code artifacts: Logic App workflow + Event Grid subscriptions
 frontend/         React + TypeScript portal
 data/             Synthetic samples + demo prompts
-scripts/          app (start/stop) · run_demo · setup · seed helpers
+scripts/          app (start/stop) · run_demo · publish_function · setup · seed helpers
 tests/            pytest suite (health, permits, orchestrator, resilience)
 docs/             architecture · Demo Track · deployment · production path
 ```

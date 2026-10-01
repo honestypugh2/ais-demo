@@ -3,8 +3,9 @@
 
   POST /permits authenticates the caller (subscription key), stamps a correlation
   ID, and enqueues the permit packet directly onto the Service Bus queue using
-  APIM's managed identity (no connection string). Returns 202 Accepted so the
-  caller is not blocked while the ProcessPermit function handles the message.
+  APIM's managed identity (no connection string). Returns 202 Accepted only after
+  Service Bus confirms the enqueue (201), so 202 means "durably accepted" — not
+  "approved". If the enqueue fails, the caller gets 503 and nothing is queued.
 
   Demo Track steps: A2, A4, A6 (governed async submit) + A14 (rate limit → 429).
   Requires the APIM system-assigned identity to have "Azure Service Bus Data
@@ -55,6 +56,25 @@
       </set-header>
       <set-body>@((string)context.Variables["permitBody"])</set-body>
     </send-request>
+
+    <!-- 202 only means something if the message is durably on the queue. -->
+    <choose>
+      <when condition="@(((IResponse)context.Variables["sbresponse"]).StatusCode != 201)">
+        <return-response>
+          <set-status code="503" reason="Service Unavailable" />
+          <set-header name="X-Correlation-Id" exists-action="override">
+            <value>@((string)context.Variables["correlationId"])</value>
+          </set-header>
+          <set-header name="Retry-After" exists-action="override">
+            <value>30</value>
+          </set-header>
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>@("{\"status\":\"not-accepted\",\"reason\":\"queue unavailable\",\"correlationId\":\"" + (string)context.Variables["correlationId"] + "\"}")</set-body>
+        </return-response>
+      </when>
+    </choose>
 
     <!-- Return 202 Accepted with the correlation ID (async accepted). -->
     <return-response>

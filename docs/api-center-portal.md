@@ -10,13 +10,18 @@ experience for the permit-intake example.
 
 ## Demo catalog
 
+[infra/modules/apicenter.bicep](../infra/modules/apicenter.bicep) creates the
+API Center (Free plan) and links it to API Management as an API source, so the
+APIs below synchronize automatically. The link uses the `2024-06-01-preview`
+API version — the only version that offers it today.
+
 The API Center linked to the demo API Management instance contains these APIs:
 
 | API | Purpose | Expected lifecycle |
 | --- | --- | --- |
 | **Permits API** | Accepts permit requests through the direct governed path | Development |
 | **Permits API (Orchestrated)** | Accepts permit requests routed through the Logic App workflow | Development |
-| **Azure OpenAI** | Exposes the governed model endpoint used for compliance scoring | Development |
+| **Azure OpenAI** | Exposes the governed Azure OpenAI v1 endpoint (`/openai/v1`) for the Foundry model used in compliance scoring | Development |
 
 The synchronized APIM catalog can also contain the built-in **Echo API**. A
 new API Center can include **Swagger Petstore** as sample content. These sample
@@ -86,13 +91,14 @@ connects API discovery to the complete integration journey:
 
 ```text
 Portal -> API Management -> Logic Apps -> Service Bus -> Azure Functions
-       -> Document Intelligence -> APIM AI gateway -> Azure OpenAI
-       -> CRM -> Event Grid
+       -> Document Intelligence -> APIM AI gateway -> Foundry model (gpt-5.4-mini)
+       -> case system (CRM) -> Event Grid
 ```
 
 Then open **Azure OpenAI** to explain that the model endpoint is cataloged like
-other APIs but remains governed by API Management policies for token limits,
-metrics, and managed-identity backend authentication.
+other APIs but remains governed by API Management policies for content safety,
+token limits and quotas, token metrics, and managed-identity backend
+authentication.
 
 ### API documentation view
 

@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     # ── API Management ──────────────────────────────────────────────────────
     apim_base: str = Field(default="", alias="APIM_BASE")
     apim_subscription_key: str = Field(default="", alias="APIM_SUBSCRIPTION_KEY")
-    permits_api_path: str = Field(default="/permits/v1/permits", alias="PERMITS_API_PATH")
+    permits_api_path: str = Field(default="/permits", alias="PERMITS_API_PATH")
 
     # ── Service Bus ─────────────────────────────────────────────────────────
     servicebus_fqdn: str = Field(default="", alias="SERVICEBUS_FQDN")

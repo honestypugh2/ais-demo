@@ -1,9 +1,15 @@
 """End-to-end trace query (Demo Track step B8).
 
 Runs a Kusto query against the Log Analytics workspace (workspace-based
-Application Insights tables) for a correlation ID and returns the whole journey —
-the API host's request and dependencies plus the Function's processing logs,
-which carry ``correlationId`` as a custom dimension or in the message text. In simulated
+Application Insights tables) for a correlation ID and returns the whole journey.
+
+The journey spans two Application Insights operations: the intake request at API
+Management (which logs ``X-Correlation-Id``) and the Function's processing
+operation (Document Intelligence, the AI-gateway call back through APIM, and the
+Event Grid publish), whose logs carry the correlation ID. The Service Bus hop
+doesn't carry W3C trace context, so the query finds every operation that
+mentions the correlation ID and returns their requests, dependencies, and the
+log records that name it. In simulated
 mode a representative trace is returned so the demo works offline.
 """
 
@@ -15,10 +21,15 @@ from ais_demo.core.logging import get_logger
 logger = get_logger(__name__)
 
 KQL_TEMPLATE = """
-union AppRequests, AppDependencies, AppTraces, AppExceptions
-| where OperationId == '{cid}'
-     or tostring(Properties['correlationId']) == '{cid}'
-     or Message has '{cid}'
+let cid = '{cid}';
+let hits = union AppRequests, AppDependencies, AppTraces, AppExceptions
+    | where OperationId == cid or Message has cid or tostring(Properties) has cid;
+let ops = hits
+    | where isnotempty(OperationId) and OperationId != '00000000000000000000000000000000'
+    | distinct OperationId;
+union
+    (union AppRequests, AppDependencies, AppExceptions | where OperationId in (ops)),
+    (hits | where Type == 'AppTraces')
 | project TimeGenerated, Type, Name = coalesce(Name, Message, OuterMessage),
           ResultCode, DurationMs, AppRoleName
 | order by TimeGenerated asc
