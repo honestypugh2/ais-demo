@@ -158,3 +158,19 @@ Well-Architected Framework:
 > Full details — security, reliability, observability, evaluation, and CI/CD,
 > mapped to WAF pillars and Microsoft reference architectures — are in
 > [production-path.md](production-path.md).
+
+## 6. Clean up
+
+Delete the resource group when you're done:
+
+```bash
+az group delete -n rg-ais-demo --yes --no-wait
+```
+
+API Management and the Foundry / Document Intelligence accounts are
+soft-deleted for 48 hours. To redeploy with the same names sooner, purge them:
+
+```bash
+az apim deletedservice purge --service-name <apim-name> --location eastus2
+az cognitiveservices account purge -n <account-name> -g rg-ais-demo -l eastus2
+```

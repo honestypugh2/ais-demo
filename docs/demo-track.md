@@ -53,8 +53,10 @@ state (`IntakeReview` or `NeedsAttention`).
 > ([permits-api.direct.xml](../apim/policies/permits-api.direct.xml)). To show
 > `401`, apply the Entra variant
 > ([permits-api.policy.xml](../apim/policies/permits-api.policy.xml)), mint a
-> token with [scripts/get_token.sh](../scripts/get_token.sh), call the API for a
-> `202`, then tamper/drop the token. For `403`, send a prompt-injection prompt
+> token with [scripts/get_token.sh](../scripts/get_token.sh), then tamper/drop
+> the token. The `401` needs nothing else; for a `202` with a valid token, first
+> register the `permit-intake-logicapp` backend (the Logic App trigger URL — see
+> [apim/policies/README.md](../apim/policies/README.md)), which Bicep doesn't create. For `403`, send a prompt-injection prompt
 > to `/openai/v1/responses`. **A5 follow-up:** the token metrics land in Application Insights —
 > render them with
 > [ai_gateway_extras/kql/token-monitoring.kql](../ai_gateway_extras/kql/token-monitoring.kql)
